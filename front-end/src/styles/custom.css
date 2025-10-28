@@ -1,0 +1,30 @@
+.custom-modal .ant-modal-content {
+  @apply !rounded-full !bg-transparent !p-0;
+}
+
+.ant-modal-mask {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(7.5px) !important;
+}
+
+.ant-drawer-mask {
+  /* background-color: rgba(0, 0, 0, 0.7) !important; */
+  /* background-color: rgba(73, 82, 110, 0.4) !important;
+  backdrop-filter: blur(10px) !important; */
+}
+
+/* input */
+/* .ant-input::placeholder {
+  color: #898989;
+} */
+
+/* Drawer */
+.ant-drawer-body {
+  padding: 0 !important;
+}
+
+/* skeleton */
+/* .skeleton-image span {
+  width: 100% !important;
+  height: 100% !important;
+} */

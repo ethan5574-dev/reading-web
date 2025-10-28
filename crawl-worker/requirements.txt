@@ -1,0 +1,11 @@
+aiohttp
+aiodns
+beautifulsoup4
+lxml
+tenacity
+python-dotenv
+requests
+urllib3
+boto3
+sqlalchemy
+pymysql

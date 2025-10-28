@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-gradient: linear-gradient(
+      182deg,
+      #ff1d00 -18.5%,
+      #ff9038 39.98%,
+      #edb44d 98.47%
+    );
+  }
+
+  body {
+    @apply bg-layer-primary;
+  }
+}
+
+@layer components {
+  /* @media only screen and (max-width: 640px) {
+    .menu-page {
+      zoom: 5;
+    }
+  } */
+  .layout-container {
+    @apply mx-auto max-w-[1700px] px-[16px] sm:px-[24px];
+  }
+
+  .btn {
+    @apply h-[32px] whitespace-nowrap rounded-lg px-[12px] text-[14px] font-[500] hover:opacity-80 lg:h-[40px] lg:px-[20px] lg:text-[16px];
+  }
+  .btn[disabled] {
+    @apply !opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn border-none !text-white ![background:var(--primary-gradient)];
+  }
+
+  .btn-secondary {
+    @apply btn border !border-[#475467] !text-white ![background:var(--secondary-gradient)];
+  }
+
+  .btn-tertiary {
+    @apply btn border !border-[#D0D5DD] !bg-[#1A1A1A] !text-[#FFF4EB];
+  }
+
+  button.btn-green[disabled]:hover,
+  button.btn-red[disabled]:hover,
+  button.btn-yellow[disabled]:hover {
+    background: #d9d9d9 !important;
+    @apply bg-none hover:!text-[rgba(0,0,0,0.25)];
+  }
+
+  .layout-container {
+    @apply max-w-[1700px] mx-auto px-[16px] sm:px-[24px];
+  }
+  .btn-primary {
+    @apply uppercase font-godOfWar px-[20px] py-[6.5px] border-none bg-[#E19643] text-[#F0DCC0] text-[20px] font-[400];
+  }
+
+  .btn-yellow {
+    background: linear-gradient(90deg, #fccd55 0%, #f8ad3e 100%);
+    @apply shadow-[0px_4px_12px_0px_rgba(239,203,13,0.25)] rounded-xl h-[48px] flex justify-center items-center text-[20px] font-[400] text-[#fff] font-godOfWar;
+  }
+  .btn-yellow:hover {
+    background: linear-gradient(90deg, #fccd55 0%, #f8ad3e 100%) !important;
+    @apply !text-[#E19643];
+  }
+
+  .btn-green {
+    background: linear-gradient(90deg, #93d95c 0%, #10ae62 61%);
+    @apply shadow-[0px_4px_12px_0px_rgba(4,121,100,0.25)] rounded-xl h-[48px] flex justify-center items-center text-[20px] font-[400] text-[#fff] font-godOfWar;
+  }
+  .btn-green:hover {
+    background: linear-gradient(90deg, #93d95c 0%, #10ae62 61%) !important;
+    @apply !text-green;
+  }
+
+  .btn-red {
+    background: linear-gradient(90deg, #e58a51 0%, #f3394a 83%);
+    @apply shadow-[0px_4px_12px_0px_rgba(240,0,0,0.25)] rounded-xl  h-[48px] border-none flex justify-center items-center text-[20px] font-[400] text-[#fff] font-godOfWar;
+  }
+  .btn-red:hover {
+    background: linear-gradient(90deg, #e58a51 0%, #f3394a 83%) !important;
+  }
+
+  .btn-grey {
+    background: #555555;
+    @apply shadow-[0px_4px_12px_0px_rgba(240,0,0,0.25)] rounded-xl  h-[48px] border-none flex justify-center items-center text-[20px] font-[400] text-[#fff] font-godOfWar;
+  }
+  .btn-grey:hover {
+    background: #555555 !important;
+  }
+
+
+  @media only screen and (max-width: 1024px) {
+    /* hide scrollbar */
+    /* ::-webkit-scrollbar {
+      display: none;
+    } */
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 2px black;
+  }
+
+  .animateAnchor {
+    animation-name: anchor-swing;
+    animation-duration: 1.5s;
+    animation-timing-function: ease-in-out;
+    transform-origin: top right;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes anchor-swing {
+    0% {
+      transform: rotate(-10deg);
+    }
+    25% {
+      transform: rotate(10deg);
+    }
+    50% {
+      transform: rotate(-10deg);
+    }
+    75% {
+      transform: rotate(10deg);
+    }
+    100% {
+      transform: rotate(-10deg);
+    }
+  }
+
+  /* custom scroll bar */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  /* end custom scroll bar */
+}
+
+@layer utilities {
+}

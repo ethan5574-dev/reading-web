@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  /* Custom Primary Colors */
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  
+  /* Custom Secondary Colors */
+  --color-secondary: #64748b;
+  --color-secondary-foreground: #ffffff;
+  
+  /* Custom Success Colors */
+  --color-success: #10b981;
+  --color-success-foreground: #ffffff;
+  
+  /* Custom Warning Colors */
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #ffffff;
+  
+  /* Custom Error Colors */
+  --color-error: #ef4444;
+  --color-error-foreground: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    
+    /* Dark mode primary colors */
+    --color-primary: #60a5fa;
+    --color-primary-foreground: #000000;
+    
+    --color-secondary: #94a3b8;
+    --color-secondary-foreground: #000000;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Fix Tailwind preflight removing list-style inside CKEditor content */
+.ck-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+.ck-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+}
+
+/* Line clamp utilities */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

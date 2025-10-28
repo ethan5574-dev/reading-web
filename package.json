@@ -1,0 +1,14 @@
+{
+  "name": "web-newpaper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev:ui": "yarn --cwd front-end dev -p 3001",
+    "dev:server": "yarn --cwd back-end start:dev",
+    "dev": "concurrently \"yarn dev:ui\" \"yarn dev:server\""
+  },
+  "dependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
