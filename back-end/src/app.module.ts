@@ -4,7 +4,6 @@ import configuration from './config/configuration';
 import { validateEnv } from './config/validation';
 import { HealthModule } from './modules/health/health.module';
 import { UploadModule } from './modules/upload/upload.module';
-import { AuthModule } from './modules/auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
@@ -31,7 +30,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
     HealthModule,
     UploadModule,
-    AuthModule,
     ],
   controllers: [],
   providers: [],
