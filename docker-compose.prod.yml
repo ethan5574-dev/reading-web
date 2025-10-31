@@ -2,7 +2,7 @@ version: "3"
 services:
   frontend:
     image: ghcr.io/ethan5574-dev/reading-web-frontend:latest
-    container_name: frontend
+    container_name: frontend-reading
     restart: always
     pull_policy: always
     ports:
@@ -18,7 +18,7 @@ services:
 
   backend:
     image: ghcr.io/ethan5574-dev/reading-web-backend:latest
-    container_name: backend
+    container_name: backend-reading
     restart: always
     pull_policy: always
     ports:
