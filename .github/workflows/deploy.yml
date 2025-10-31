@@ -2,7 +2,7 @@ name: CI/CD Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-deploy:
@@ -48,3 +48,19 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
+        env:
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          NEXT_PUBLIC_FE_URL: ${{ secrets.NEXT_PUBLIC_FE_URL }}
+          NEXT_PUBLIC_BE_URL: ${{ secrets.NEXT_PUBLIC_BE_URL }}
+          NEXT_PUBLIC_MODE: ${{ secrets.NEXT_PUBLIC_MODE }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_SYNC: ${{ secrets.DB_SYNC }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}

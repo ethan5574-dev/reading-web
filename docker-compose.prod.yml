@@ -9,6 +9,10 @@ services:
       - "3005:3000"
     depends_on:
       - backend
+    environment:
+      - NEXT_PUBLIC_FE_URL=${NEXT_PUBLIC_FE_URL}
+      - NEXT_PUBLIC_BE_URL=${NEXT_PUBLIC_BE_URL}
+      - NEXT_PUBLIC_MODE=${NEXT_PUBLIC_MODE}
     networks:
       - reading_net
 
@@ -19,6 +23,19 @@ services:
     pull_policy: always
     ports:
       - "3006:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SYNC=${DB_SYNC}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
     networks:
       - reading_net
 
