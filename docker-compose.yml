@@ -3,14 +3,14 @@ services:
     build: ./front-end
     container_name: frontend
     ports:
-      - "3001:3000"       # user truy cập http://domain.com:3001
+      - "3005:3000"       # user truy cập http://domain.com:3001
     restart: always
 
   backend:
     build: ./back-end
     container_name: backend
     ports:
-      - "3002:3000"   # user truy cập http://domain.com:3002
+      - "3006:3000"   # user truy cập http://domain.com:3002
     restart: always
 
 
