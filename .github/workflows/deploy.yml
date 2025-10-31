@@ -1,53 +1,34 @@
-name: CI/CD Deploy
+name: Deploy to VPS
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
-
-      - name: Build and push FRONTEND image
-        uses: docker/build-push-action@v6
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
         with:
           context: ./front-end
           push: true
-          tags: ghcr.io/${{ github.repository }}-frontend:latest
+          tags: ghcr.io/ethan5574-dev/reading-web-frontend:latest
 
-      - name: Build and push BACKEND image
-        uses: docker/build-push-action@v6
+      - name: Build backend image
+        uses: docker/build-push-action@v5
         with:
           context: ./back-end
           push: true
-          tags: ghcr.io/${{ github.repository }}-backend:latest
+          tags: ghcr.io/ethan5574-dev/reading-web-backend:latest
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ${{ secrets.PROJECT_PATH }}
-            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GHCR_TOKEN }}
-            docker compose -f docker-compose.prod.yml down || true
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
         env:
           NEXT_PUBLIC_FE_URL: ${{ secrets.NEXT_PUBLIC_FE_URL }}
           NEXT_PUBLIC_BE_URL: ${{ secrets.NEXT_PUBLIC_BE_URL }}
@@ -64,4 +45,33 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GHCR_TOKEN }}
+            docker compose -f docker-compose.prod.yml down || true
+            docker compose -f docker-compose.prod.yml pull
 
+            # 🔥 Ghi toàn bộ env vào file .env để Docker Compose đọc
+            cat > .env <<EOF
+NEXT_PUBLIC_FE_URL=${NEXT_PUBLIC_FE_URL}
+NEXT_PUBLIC_BE_URL=${NEXT_PUBLIC_BE_URL}
+NEXT_PUBLIC_MODE=${NEXT_PUBLIC_MODE}
+NODE_ENV=${NODE_ENV}
+DB_HOST=${DB_HOST}
+DB_PORT=${DB_PORT}
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASSWORD}
+DB_NAME=${DB_NAME}
+DB_SYNC=${DB_SYNC}
+JWT_SECRET=${JWT_SECRET}
+JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+AWS_REGION=${AWS_REGION}
+EOF
+
+            docker compose -f docker-compose.prod.yml up -d
