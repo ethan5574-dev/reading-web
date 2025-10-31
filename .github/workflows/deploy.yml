@@ -55,8 +55,8 @@ jobs:
             docker compose -f docker-compose.prod.yml down || true
             docker compose -f docker-compose.prod.yml pull
 
-            # 🔥 Ghi toàn bộ env vào file .env để Docker Compose đọc
-            cat > .env <<EOF
+            echo "Writing .env file..."
+            cat > .env << 'EOF'
 NEXT_PUBLIC_FE_URL=${NEXT_PUBLIC_FE_URL}
 NEXT_PUBLIC_BE_URL=${NEXT_PUBLIC_BE_URL}
 NEXT_PUBLIC_MODE=${NEXT_PUBLIC_MODE}
