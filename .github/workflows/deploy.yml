@@ -68,22 +68,20 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
 
             echo "Writing .env file..."
-            cat > .env <<'EOF'
-NEXT_PUBLIC_FE_URL=${{ secrets.NEXT_PUBLIC_FE_URL }}
-NEXT_PUBLIC_BE_URL=${{ secrets.NEXT_PUBLIC_BE_URL }}
-NEXT_PUBLIC_MODE=${{ secrets.NEXT_PUBLIC_MODE }}
-NODE_ENV=${{ secrets.NODE_ENV }}
-DB_HOST=${{ secrets.DB_HOST }}
-DB_PORT=${{ secrets.DB_PORT }}
-DB_USER=${{ secrets.DB_USER }}
-DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-DB_NAME=${{ secrets.DB_NAME }}
-DB_SYNC=${{ secrets.DB_SYNC }}
-JWT_SECRET=${{ secrets.JWT_SECRET }}
-JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
-AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-AWS_REGION=${{ secrets.AWS_REGION }}
-EOF
+            echo "NEXT_PUBLIC_FE_URL=${{ secrets.NEXT_PUBLIC_FE_URL }}" > .env
+            echo "NEXT_PUBLIC_BE_URL=${{ secrets.NEXT_PUBLIC_BE_URL }}" >> .env
+            echo "NEXT_PUBLIC_MODE=${{ secrets.NEXT_PUBLIC_MODE }}" >> .env
+            echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_SYNC=${{ secrets.DB_SYNC }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+            echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
 
             docker compose -f docker-compose.prod.yml up -d
