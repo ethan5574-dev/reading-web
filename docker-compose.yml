@@ -1,14 +1,14 @@
 services:
   frontend:
     build: ./front-end
-    container_name: frontend
+    container_name: frontend-reading
     ports:
       - "3005:3000"       # user truy cập http://domain.com:3001
     restart: always
 
   backend:
     build: ./back-end
-    container_name: backend
+    container_name: backend-reading
     ports:
       - "3006:3000"   # user truy cập http://domain.com:3002
     restart: always
