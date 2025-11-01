@@ -72,6 +72,7 @@ jobs:
             echo "NEXT_PUBLIC_FE_URL=${{ secrets.NEXT_PUBLIC_FE_URL }}" > .env
             echo "NEXT_PUBLIC_BE_URL=${{ secrets.NEXT_PUBLIC_BE_URL }}" >> .env
             echo "NEXT_PUBLIC_MODE=${{ secrets.NEXT_PUBLIC_MODE }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
             echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
             echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
