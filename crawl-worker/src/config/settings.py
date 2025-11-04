@@ -34,7 +34,12 @@ class CrawlerSettings:
     
     # Database Configuration
     DATABASE_ENABLED: bool = True  # Set to True to enable database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "mysql+pymysql://user:password@localhost:3306/manga_db")
+    DB_HOST: str = os.getenv("DB_HOST", "localhost")
+    DB_PORT: str = os.getenv("DB_PORT", "3306")
+    DB_USER: str = os.getenv("DB_USER", "user")
+    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "password")
+    DB_NAME: str = os.getenv("DB_NAME", "manga_db")
+    DB_SYNC: str = os.getenv("DB_SYNC", "")
     
     # Logging
     LOG_LEVEL: str = "INFO"  # Dùng cho console logging
@@ -46,7 +51,13 @@ class CrawlerSettings:
     IMAGE_SELECTORS: dict = None
     
     def __post_init__(self):
-        """Initialize default selectors"""
+        """Initialize default selectors and convert env vars"""
+        # Convert DB_SYNC string to boolean
+        if isinstance(self.DB_SYNC, str):
+            self.DB_SYNC = self.DB_SYNC.lower() in ("true", "1", "yes")
+        elif self.DB_SYNC is None or self.DB_SYNC == "":
+            self.DB_SYNC = True  # Default to True
+        
         if self.SERIES_SELECTORS is None:
             self.SERIES_SELECTORS = {
                 "container": "div.book_avatar",

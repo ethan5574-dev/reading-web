@@ -63,7 +63,15 @@ class CrawlerOrchestrator:
         if self.config.DATABASE_ENABLED:
             try:
                 self.db_client = DatabaseClient()
-                self.db_client.create_tables()
+                # Only create tables if DB_SYNC is enabled
+                if self.config.DB_SYNC:
+                    try:
+                        self.db_client.create_tables()
+                        self.logger.info("Database tables created successfully")
+                    except Exception as create_error:
+                        self.logger.warning(f"Could not create tables (may already exist or no permission): {str(create_error)}")
+                else:
+                    self.logger.info("DB_SYNC is disabled, skipping table creation")
                 self.logger.info("Database client initialized")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize database client: {str(e)}")

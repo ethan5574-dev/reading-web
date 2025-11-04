@@ -14,23 +14,36 @@ from .db_models import Base, Series, Chapter, Author, SeriesAuthor, ChapterViewS
 class DatabaseClient:
     """Database client for manga data operations"""
     
-    def __init__(self, database_url: str = None):
+    def __init__(self, db_host: str = None, db_port: str = None, db_user: str = None, 
+                 db_password: str = None, db_name: str = None):
         """
         Initialize database client
         
         Args:
-            database_url: Database connection URL (default: from env DATABASE_URL)
+            db_host: Database host
+            db_port: Database port
+            db_user: Database user
+            db_password: Database password
+            db_name: Database name
         """
-        self.database_url = database_url or os.getenv('DATABASE_URL')
+        self.db_host = db_host or os.getenv('DB_HOST')
+        self.db_port = db_port or os.getenv('DB_PORT')
+        self.db_user = db_user or os.getenv('DB_USER')
+        self.db_password = db_password or os.getenv('DB_PASSWORD')
+        self.db_name = db_name or os.getenv('DB_NAME')
         
-        if not self.database_url:
-            raise ValueError("DATABASE_URL environment variable is required")
+        # Validate required config
+        if not all([self.db_host, self.db_port, self.db_user, self.db_password, self.db_name]):
+            raise ValueError("Missing required database configuration. Please set DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, and DB_NAME environment variables.")
         
         self.logger = logging.getLogger(__name__)
         
+        # Create database URL
+        database_url = f"mysql+pymysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+        
         # Create engine and session
         try:
-            self.engine = create_engine(self.database_url, echo=False)
+            self.engine = create_engine(database_url, echo=False)
             self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
             self.logger.info("Database client initialized successfully")
         except Exception as e:
