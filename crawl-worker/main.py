@@ -378,9 +378,6 @@ def _cmd_database(orchestrator: CrawlerOrchestrator, args: List[str]):
             
             print(f"  Saving chapter: {chapter_number}")
             
-            # Extract chapter number as decimal
-            chapter_num = float(chapter_number.replace('Chương ', '').replace('Chapter ', ''))
-            
             # Prepare pages_url as JSON array
             pages_url = []
             local_manifest = chapter_data.get("local_manifest", {})
@@ -400,6 +397,9 @@ def _cmd_database(orchestrator: CrawlerOrchestrator, args: List[str]):
                 elif img.get('source_url'):
                     pages_url.append(img['source_url'])
             
+            # Set chapter_num as number of images in this chapter
+            chapter_num = len(pages_url)
+
             # Save chapter
             chapter_obj = orchestrator.db_client.save_chapter(series_obj, {
                 'number': chapter_num,
@@ -421,16 +421,35 @@ def _cmd_database(orchestrator: CrawlerOrchestrator, args: List[str]):
 
 
 def _cmd_all(orchestrator: CrawlerOrchestrator, args: List[str]):
-    # Run crawl with optional limits, then download
+    # Run crawl with optional limits
     _cmd_crawl(orchestrator, args)
-    # Find the latest crawl_results_*.json in output dir
-    files = [fn for fn in os.listdir(orchestrator.config.OUTPUT_DIR) if fn.startswith("crawl_results_") and fn.endswith(".json")]
-    if not files:
+
+    # Find the latest crawl_results_*.json in output dir and run download
+    crawl_files = [fn for fn in os.listdir(orchestrator.config.OUTPUT_DIR) if fn.startswith("crawl_results_") and fn.endswith(".json")]
+    if not crawl_files:
         print("[!] No crawl results found to download from.")
         return
-    files.sort()
-    latest = os.path.join(orchestrator.config.OUTPUT_DIR, files[-1])
-    _cmd_download(orchestrator, ["--from", latest])
+    crawl_files.sort()
+    latest_crawl = os.path.join(orchestrator.config.OUTPUT_DIR, crawl_files[-1])
+    _cmd_download(orchestrator, ["--from", latest_crawl])
+
+    # Find the latest download_results_*.json in output dir and run upload
+    download_files = [fn for fn in os.listdir(orchestrator.config.OUTPUT_DIR) if fn.startswith("download_results_") and fn.endswith(".json")]
+    if not download_files:
+        print("[!] No download results found to upload from.")
+        return
+    download_files.sort()
+    latest_download = os.path.join(orchestrator.config.OUTPUT_DIR, download_files[-1])
+    _cmd_upload(orchestrator, ["--from", latest_download])
+
+    # Find the latest upload_results_*.json in output dir and run database
+    upload_files = [fn for fn in os.listdir(orchestrator.config.OUTPUT_DIR) if fn.startswith("upload_results_") and fn.endswith(".json")]
+    if not upload_files:
+        print("[!] No upload results found to import into database.")
+        return
+    upload_files.sort()
+    latest_upload = os.path.join(orchestrator.config.OUTPUT_DIR, upload_files[-1])
+    _cmd_database(orchestrator, ["--from", latest_upload])
 
 
 def main():

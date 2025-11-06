@@ -6,7 +6,7 @@ import { Author } from './author.entity';
 @Index(['series_id', 'code'], { unique: true })
 @Index(['code'])
 export class SeriesAuthor {
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryColumn({ type: 'int' })
   series_id: number;
 
   @PrimaryColumn({ type: 'varchar', length: 40 })

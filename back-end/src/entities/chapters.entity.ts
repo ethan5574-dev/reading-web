@@ -8,7 +8,7 @@ export class Chapters {
   @PrimaryGeneratedColumn('increment')
   chapter_id: number;
 
-  @Column({ type: 'bigint', nullable: false })
+  @Column({ type: 'int', nullable: false })
   series_id: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
@@ -17,16 +17,16 @@ export class Chapters {
   @Column({ type: 'varchar', length: 250, nullable: true })
   title: string;
 
-  @Column({ type: 'jsonb', nullable: false })
+  @Column({ type: 'json', nullable: false })
   pages_url: any;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   released_at: Date;
 
-  @CreateDateColumn({ type: 'timestamptz', nullable: false })
+  @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz', nullable: false })
+  @UpdateDateColumn({ type: 'timestamp', nullable: false })
   updated_at: Date;
 
   @ManyToOne(() => Series, series => series.chapters)

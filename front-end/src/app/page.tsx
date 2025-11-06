@@ -1,263 +1,236 @@
-'use client';
-import Image from "next/image";
-import { StickyNote, Eye, ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
-import {getAllPosts, getTopView} from "@/fetching/post";    
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+"use client"
 
-interface Author {
-  user_id: number;
-  email: string;
-  password_hash: string;
-  username: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Post {
-  post_id: number;
-  author_id: number;
-  total_view_count: number;
-  title: string;
-  image_url: string | null;
-  isDeleted: boolean | null;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  author: Author;
-}
+import { Search, Star, Flame, Cloud } from "lucide-react"
+import StoryCard from "@/components/StoryCard"
+const navItems = [
+  { label: "Trang Chủ", href: "#" },
+  { label: "Thể Loại", href: "#" },
+  { label: "Xếp Hạng", href: "#" },
+  { label: "Con Gái", href: "#" },
+  { label: "Con Trai", href: "#" },
+  { label: "Tìm Truyện", href: "#" },
+  { label: "Lịch Sử", href: "#" },
+  { label: "Theo Dõi", href: "#" },
+  { label: "Thảo Luận", href: "#" },
+]
 
 export default function Home() {
-  const [filterType, setFilterType] = useState<'all' | 'top30'>('all');
-  const [showDropdown, setShowDropdown] = useState(false);
+  const hotStories = [
+    {
+      id: 1,
+      title: "Câu Bé Của Thần Chết",
+      episodes: "1 Giới Truyện",
+      chapter: "Chương 303",
+      image: "/image.png",
+      isHot: true,
+    },
+    {
+      id: 2,
+      title: "Gây Gổ Cấp 99+",
+      episodes: "7 Giới Truyện",
+      chapter: "Chương 1675",
+      image: "/image.png",
+      isHot: true,
+    },
+    {
+      id: 3,
+      title: "Vô Luyện Định Phong",
+      episodes: "9 Giới Truyện",
+      chapter: "Chương 3853",
+      image: "/image.png",
+      isHot: true,
+    },
+    {
+      id: 4,
+      title: "Tuyệt Thế Đường Môn",
+      episodes: "1 Ngoài Truyện",
+      chapter: "Chương 574",
+      image: "/image.png",
+      isHot: true,
+    },
+    {
+      id: 5,
+      title: "One Piece",
+      episodes: "1 Ngoài Truyện",
+      chapter: "Chương 1164",
+      image: "/image.png",
+      isHot: true,
+    },
+    {
+      id: 6,
+      title: "Hoàn Quan Hồi Quy 1",
+      episodes: "1 Ngoài Truyện",
+      chapter: "Chương 61",
+      image: "/image.png",
+      isHot: true,
+    },
+  ]
 
-  const { data: posts } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => getAllPosts(),
-  });
+  const exclusiveStories = [
+    {
+      id: 7,
+      title: "Trong Sinh Độ Thị Tu Tiên",
+      episodes: "16 Phát Trước",
+      chapter: "Chương 1115",
+      image: "/image.png",
+      isNew: false,
+    },
+    {
+      id: 8,
+      title: "Ta Muốn Phong Thiên",
+      episodes: "1 Giới Truyện",
+      chapter: "Chương 11",
+      image: "/image.png",
+      isNew: false,
+    },
+    {
+      id: 9,
+      title: "Chàng Rể Mạnh Nhất",
+      episodes: "3 Giới Truyện",
+      chapter: "Chương 347",
+      image: "/image.png",
+      isNew: false,
+    },
+    {
+      id: 10,
+      title: "Anh Sáng Arad",
+      episodes: "5 Giới Truyện",
+      chapter: "Chương 51",
+      image: "/image.png",
+      isNew: false,
+    },
+    {
+      id: 11,
+      title: "Một Con Dao Mộ Lộn",
+      episodes: "6 Giới Truyện",
+      chapter: "Chương 17",
+      image: "/image.png",
+      isNew: false,
+    },
+    {
+      id: 12,
+      title: "Mạnh Nhất Lịch Sử",
+      episodes: "7 Giới Truyện",
+      chapter: "Chương 241",
+      image: "/image.png",
+      isNew: false,
+    },
+  ]
 
-  const { data: topView, isLoading: isTopViewLoading} = useQuery({
-    queryKey: ['topView'],
-    queryFn: () => getTopView(30, 3),
-    enabled: filterType === 'top30', // Only fetch when top30 is selected
-  });
-
-  const apiPosts = posts?.data?.data || [];
-  const topViewPosts = topView?.data || [];
-  
-  // Sort by view count descending and take top 3
-  const dataTop3Post = [...apiPosts]
-    .sort((a, b) => b.total_view_count - a.total_view_count)
-    .slice(0, 3);
-  
-  const stripHtml = (html?: string) => (html ? html.replace(/<[^>]+>/g, '') : '');
-  
-  const router = useRouter();
-  
-  // Close dropdown when clicking outside
-  const handleClickOutside = (e: React.MouseEvent) => {
-    if (showDropdown) {
-      setShowDropdown(false);
-    }
-  };
+  const newStories = [
+    {
+      id: 13,
+      title: "Bộ Tối Lạo Độc Vụ",
+      episodes: "6 Phát Trước",
+      chapter: "Chapter 216",
+      image: "/image.png",
+      isNew: true,
+    },
+    {
+      id: 14,
+      title: "Thiên Tài Vô Thuật Hội",
+      episodes: "26 Phát Trước",
+      chapter: "Chapter 115",
+      image: "/image.png",
+      isNew: true,
+    },
+    {
+      id: 15,
+      title: "Vợ Tôi Có Thể Nhân Thế",
+      episodes: "36 Phát Trước",
+      chapter: "Chapter 107",
+      image: "/image.png",
+      isNew: true,
+    },
+    {
+      id: 16,
+      title: "Trả Thành Cương Nhân",
+      episodes: "42 Phát Trước",
+      chapter: "Chapter 8",
+      image: "/image.png",
+      isNew: true,
+    },
+    {
+      id: 17,
+      title: "Mạhouka Koukou No Re",
+      episodes: "42 Phát Trước",
+      chapter: "Chapter 20",
+      image: "/image.png",
+      isNew: true,
+    },
+    {
+      id: 18,
+      title: "Trở Thành Thiên Tài Tiên",
+      episodes: "1 Giới Truyện",
+      chapter: "Chapter 33",
+      image: "/image.png",
+      isNew: true,
+    },
+  ]
 
   return (
-    <div className="bg-white min-h-screen pt-16 cursor-pointer" onClick={handleClickOutside}>
-      <div className="bg-zinc-900 mx-auto pt-6 sm:pt-10">
-        <div className="mx-auto grid max-w-[1200px] grid-cols-1 max-sm:gap-4 p-4 sm:px-6 lg:grid-cols-2">
-          <div 
-            className="relative h-[240px] sm:h-[320px] md:h-[420px] lg:h-[500px] bg-cover bg-center"
-            style={{
-              backgroundImage: dataTop3Post[0]?.image_url 
-                ? `url(${dataTop3Post[0].image_url})` 
-                : `url('https://cdn-media.sforum.vn/storage/app/media/anh-dep-15.jpg')`
-            }}
-          >
-            <div className="absolute inset-0 z-10 bg-gradient-to-b from-[70%] to-[100%] from-transparent to-black"></div>
-            <div className="absolute left-2 bottom-2 z-20">
-              <h1 className="text-white text-2xl font-bold leading-tight max-w-xl cursor-pointer" onClick={() => router.push(`/post/${dataTop3Post[0]?.post_id}`)}>
-                {dataTop3Post[0]?.title}
-              </h1>
-              <div className="flex items-center mt-4 space-x-3">
-                <Image
-                  src="https://randomuser.me/api/portraits/men/32.jpg"
-                  alt="John Doe"
-                  width={40}
-                  height={40}
-                  className="rounded-full border-2 border-white"
-                />
-                <span className="text-white font-bold">{dataTop3Post[0]?.author?.username}</span>
-                <span className="text-gray-300">·</span>
-                <span className="text-gray-300">{new Date(dataTop3Post[0]?.createdAt || Date.now()).toLocaleDateString()}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col items-stretch justify-center max-sm:gap-4">
-            <div 
-              className="relative h-[180px] sm:h-[220px] md:h-[250px] bg-cover bg-center"
-              style={{
-                backgroundImage: dataTop3Post[1]?.image_url 
-                  ? `url(${dataTop3Post[1].image_url})` 
-                  : `url('https://cdn-media.sforum.vn/storage/app/media/anh-dep-17.jpg')`
-              }}
+    <main className="min-h-screen bg-background">
+      <nav className="border-b border-border bg-accent">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex overflow-x-auto">
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="whitespace-nowrap px-4 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
             >
-              <div className="absolute inset-0 z-10 bg-gradient-to-b from-[80%] to-[100%] from-transparent to-black"></div>
-              <div className="absolute left-2 bottom-2 z-20">
-                <h1 className="text-white text-xl font-bold leading-tight max-w-xl cursor-pointer" onClick={() => router.push(`/post/${dataTop3Post[1]?.post_id}`)}>
-                  {dataTop3Post[1]?.title}
-                </h1>
-                <div className="flex items-center mt-2 space-x-3">
-                  <span className="text-white font-bold">{dataTop3Post[1]?.author?.username}</span>
-                  <span className="text-gray-300">·</span>
-                  <span className="text-gray-300">{new Date(dataTop3Post[1]?.createdAt || Date.now()).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
-            <div 
-              className="relative h-[180px] sm:h-[220px] md:h-[250px] bg-cover bg-center"
-              style={{
-                backgroundImage: dataTop3Post[2]?.image_url 
-                  ? `url(${dataTop3Post[2].image_url})` 
-                  : `url('https://cdn-media.sforum.vn/storage/app/media/anh-dep-13.jpg')`
-              }}
-            >
-              <div className="absolute inset-0 z-10 bg-gradient-to-b from-[80%] to-[100%] from-transparent to-black curso"></div>
-              <div className="absolute left-2 bottom-2 z-20">
-                <h1 className="text-white text-xl font-bold leading-tight max-w-xl cursor-pointer" onClick={() => router.push(`/post/${dataTop3Post[2]?.post_id}`)}>
-                  {dataTop3Post[2]?.title}
-                </h1>
-                <div className="flex items-center mt-2 space-x-3">
-                  <span className="text-white font-bold">{dataTop3Post[2]?.author?.username}</span>
-                  <span className="text-gray-300">·</span>
-                  <span className="text-gray-300">{new Date(dataTop3Post[2]?.createdAt || Date.now()).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+              {item.label}
+            </a>
+          ))}
         </div>
       </div>
-      <div className=" mx-auto pt-10">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
-          {/* Filter Dropdown */}
-          <div className="mb-6 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-zinc-900">
-              {filterType === 'all' ? 'All Posts' : 'Top 3 Posts (30 days)'}
-            </h2>
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDropdown(!showDropdown);
-                }}
-                className="flex items-center gap-2 rounded-lg border border-secondary bg-white px-4 py-2 text-sm font-medium text-secondary hover:bg-secondary/10 cursor-pointer"
-              >
-                {filterType === 'all' ? 'All Posts' : 'Top 3 (30 days)'}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg z-10">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFilterType('all');
-                      setShowDropdown(false);
-                    }}
-                    className={`flex w-full items-center px-4 py-2 text-sm hover:bg-secondary/10 cursor-pointer ${
-                      filterType === 'all' ? 'bg-secondary/20 text-primary' : 'text-secondary'
-                    }`}
-                  >
-                    All Posts
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFilterType('top30');
-                      setShowDropdown(false);
-                    }}
-                    className={`flex w-full items-center px-4 py-2 text-sm hover:bg-secondary/10 cursor-pointer ${
-                      filterType === 'top30' ? 'bg-secondary/20 text-primary' : 'text-secondary'
-                    }`}
-                  >
-                    Top 3 (30 days)
-                  </button>
-                </div>
-              )}
+    </nav>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Popular Stories Section */}
+        <section className="mb-12">
+          <div className="mb-6 flex items-center gap-2">
+            <Star className="h-5 w-5 fill-accent text-accent" />
+            <h2 className="text-xl font-bold text-foreground">Truyện Hay</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {hotStories.map((story) => (
+              <StoryCard key={story.id} {...story} />
+            ))}
+          </div>
+        </section>
+
+        {/* Exclusive Stories Section */}
+        <section className="mb-12">
+          <div className="mb-6 flex items-center gap-2">
+            <Flame className="h-5 w-5 text-accent" />
+            <h2 className="text-xl font-bold text-foreground">Độc Quyền Truyện QQ</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {exclusiveStories.map((story) => (
+              <StoryCard key={story.id} {...story} />
+            ))}
+          </div>
+        </section>
+
+        {/* New Updated Stories Section */}
+        <section>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-5 w-5 text-accent" />
+              <h2 className="text-xl font-bold text-foreground">Truyện Mới Cập Nhật</h2>
             </div>
+            <button className="flex items-center justify-center rounded-full border-2 border-accent p-2 text-accent transition-colors hover:bg-accent hover:text-accent-foreground">
+              <Search className="h-5 w-5" />
+            </button>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">{/* masonry columns */}
-            {filterType === 'all' ? (
-              apiPosts.map((post: Post) => (
-              <article key={post.post_id} className="group mb-6 break-inside-avoid overflow-hidden rounded-md bg-white shadow">
-                {post.image_url ? (
-                  <div className="relative h-56 w-full overflow-hidden">
-                    <img
-                      src={post.image_url}
-                      alt={post.title}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-110"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-56 flex w-full items-center justify-center bg-zinc-100 text-zinc-400">
-                    <StickyNote className="h-8 w-8" />
-                  </div>
-                )}
-                <div className="p-4">
-                  <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
-                  <h3 className="mt-1 text-base font-semibold text-zinc-900 cursor-pointer hover:text-primary" onClick={() => router.push(`/post/${post.post_id}`)}>{post.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm text-gray-600">{stripHtml(post.content).slice(0, 160)}</p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-primary">{post.author.username}</span>
-                    <span className="flex items-center gap-1 text-xs text-zinc-500">
-                      <Eye className="h-4 w-4" />
-                      {post.total_view_count.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </article>
-              ))
-            ) : (
-              isTopViewLoading ? (
-                <div className="col-span-full flex justify-center items-center py-12">
-                  <div className="text-zinc-500">Loading top posts...</div>
-                </div>
-              ) : (
-                topViewPosts.map((post: Post) => (
-                  <article key={post.post_id} className="group mb-6 break-inside-avoid overflow-hidden rounded-md bg-white shadow">
-                    {post.image_url ? (
-                      <div className="relative h-56 w-full overflow-hidden">
-                        <img
-                          src={post.image_url}
-                          alt={post.title}
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-110"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-56 flex w-full items-center justify-center bg-zinc-100 text-zinc-400">
-                        <StickyNote className="h-8 w-8" />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
-                      <h3 className="mt-1 text-base font-semibold text-zinc-900 cursor-pointer hover:text-primary" onClick={() => router.push(`/post/${post.post_id}`)}>{post.title}</h3>
-                      <p className="mt-2 line-clamp-3 text-sm text-gray-600">{stripHtml(post.content).slice(0, 160)}</p>
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-primary">{post.author.username}</span>
-                        <span className="flex items-center gap-1 text-xs text-zinc-500">
-                          <Eye className="h-4 w-4" />
-                          {post.total_view_count.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                ))
-              )
-            )}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {newStories.map((story) => (
+              <StoryCard key={story.id} {...story} />
+            ))}
           </div>
-        </div>
+        </section>
       </div>
-    </div>
-  );
+    </main>
+  )
 }

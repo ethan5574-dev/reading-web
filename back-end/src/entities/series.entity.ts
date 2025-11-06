@@ -24,10 +24,10 @@ export class Series {
   @Column({ type: 'text', nullable: true })
   synopsis: string;
 
-  @CreateDateColumn({ type: 'timestamptz', nullable: false })
+  @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz', nullable: false })
+  @UpdateDateColumn({ type: 'timestamp', nullable: false })
   updated_at: Date;
 
   @OneToMany(() => Chapters, chapter => chapter.series)

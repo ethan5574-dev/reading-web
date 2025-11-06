@@ -4,7 +4,7 @@ import { Chapters } from './chapters.entity';
 @Entity('chapter_view_stats_daily')
 @Index(['chapter_id', 'bucket_date'], { unique: true })
 export class ChapterViewStatsDaily {
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryColumn({ type: 'int' })
   chapter_id: number;
 
   @PrimaryColumn({ type: 'timestamp' })
