@@ -24,7 +24,7 @@ class ChapterCrawler(BaseCrawler):
             series_title: Title of the series
             
         Returns:
-            CrawlResult with list of ChapterInfo
+            CrawlResult with list of ChapterInfo and authors
         """
         try:
             self.logger.info(f"Starting chapter crawl from: {url}")
@@ -36,11 +36,20 @@ class ChapterCrawler(BaseCrawler):
             # Extract chapter information
             chapter_data = self._extract_chapters(soup, final_url, series_title)
             
-            self.logger.info(f"Found {len(chapter_data)} chapters")
+            # Extract authors information
+            authors = self._extract_authors(soup, final_url)
+            
+            self.logger.info(f"Found {len(chapter_data)} chapters and {len(authors)} authors")
+            
+            # Return both chapters and authors
+            result_data = {
+                "chapters": chapter_data,
+                "authors": authors
+            }
             
             return CrawlResult(
                 success=True,
-                data=chapter_data,
+                data=result_data,
                 crawled_at=datetime.now(),
                 url=url
             )
@@ -127,3 +136,42 @@ class ChapterCrawler(BaseCrawler):
                 return title.strip()
         
         return "Unknown Chapter"
+    
+    def _extract_authors(self, soup: BeautifulSoup, base_url: str) -> List[dict]:
+        """Extract authors information from li.author.row elements"""
+        authors = []
+        
+        # Find all author container elements (li.author.row)
+        author_containers = soup.select("li.author.row")
+        
+        self.logger.info(f"Found {len(author_containers)} author container(s)")
+        
+        # Find all author links (a.org) within the containers
+        author_links = soup.select("li.author.row a.org")
+        
+        self.logger.info(f"Found {len(author_links)} author link(s)")
+        
+        for i, author_link in enumerate(author_links):
+            try:
+                # Extract author name from link text
+                author_name = author_link.get_text(strip=True)
+                
+                # Extract author URL
+                author_url = self.safe_get_attribute(author_link, "href")
+                if author_url:
+                    author_url = self.make_absolute_url(base_url, author_url)
+                    if self.is_http_url(author_url):
+                        author_url = self.canonical_url(author_url)
+                
+                if author_name:
+                    authors.append({
+                        "index": i + 1,
+                        "name": author_name,
+                        "url": author_url,
+                        "crawled_at": datetime.now().isoformat()
+                    })
+            except Exception as e:
+                self.logger.warning(f"Failed to extract author {i + 1}: {str(e)}")
+                continue
+        
+        return authors

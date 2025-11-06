@@ -142,7 +142,16 @@ class CrawlerOrchestrator:
                         results["errors"].append(f"Chapter crawl failed for {series_data['title']}: {chapter_result.error_message}")
                         continue
                     
-                    chapters = chapter_result.data
+                    # Extract chapters and authors from result
+                    chapter_data_result = chapter_result.data
+                    if isinstance(chapter_data_result, dict):
+                        chapters = chapter_data_result.get("chapters", [])
+                        authors = chapter_data_result.get("authors", [])
+                    else:
+                        # Backward compatibility: if data is still a list
+                        chapters = chapter_data_result
+                        authors = []
+                    
                     results["total_chapters"] += len(chapters)
                     
                     # Limit chapters if specified
@@ -153,7 +162,8 @@ class CrawlerOrchestrator:
                     # Level 3: (Optional) Image URLs could be gathered here if needed
                     series_with_chapters = {
                         **series_data,
-                        "chapters": []
+                        "chapters": [],
+                        "authors": authors
                     }
                     
                     for chapter_data in chapters:
@@ -370,6 +380,18 @@ def _cmd_database(orchestrator: CrawlerOrchestrator, args: List[str]):
             continue
         
         total_series += 1
+        
+        # Save authors
+        authors = series_data.get("authors", [])
+        if authors:
+            print(f"  Saving {len(authors)} author(s)...")
+            for author_data in authors:
+                author_name = author_data.get("name", "").strip()
+                if author_name:
+                    author_obj = orchestrator.db_client.save_author(author_name)
+                    if author_obj:
+                        # Create series-author relationship
+                        orchestrator.db_client.save_series_author(series_obj, author_obj)
         
         # Save chapters and images
         for chapter_data in series_data.get("chapters", []):

@@ -2,6 +2,7 @@
 Database client for manga data
 """
 import os
+import re
 import logging
 from datetime import datetime
 from typing import Dict, Any, List, Optional
@@ -143,7 +144,70 @@ class DatabaseClient:
         finally:
             session.close()
     
+    def save_author(self, author_name: str) -> Optional[Author]:
+        """Save or get author by name"""
+        session = self.get_session()
+        try:
+            # Generate code from name (slug-like)
+            author_code = re.sub(r'[^a-zA-Z0-9]', '_', author_name.lower())[:40]
+            
+            # Check if author exists
+            existing_author = session.query(Author).filter(
+                Author.code == author_code
+            ).first()
+            
+            if existing_author:
+                self.logger.info(f"Author already exists: {author_name}")
+                return existing_author
+            else:
+                # Create new author
+                new_author = Author(
+                    code=author_code,
+                    label=author_name
+                )
+                session.add(new_author)
+                session.commit()
+                session.refresh(new_author)
+                self.logger.info(f"Created new author: {author_name}")
+                return new_author
+                
+        except SQLAlchemyError as e:
+            session.rollback()
+            self.logger.error(f"Failed to save author {author_name}: {str(e)}")
+            return None
+        finally:
+            session.close()
     
+    def save_series_author(self, series: Series, author: Author) -> Optional[SeriesAuthor]:
+        """Save series-author relationship"""
+        session = self.get_session()
+        try:
+            # Check if relationship exists
+            existing = session.query(SeriesAuthor).filter(
+                SeriesAuthor.series_id == series.series_id,
+                SeriesAuthor.code == author.code
+            ).first()
+            
+            if existing:
+                self.logger.info(f"Series-Author relationship already exists")
+                return existing
+            else:
+                # Create new relationship
+                new_relation = SeriesAuthor(
+                    series_id=series.series_id,
+                    code=author.code
+                )
+                session.add(new_relation)
+                session.commit()
+                self.logger.info(f"Created series-author relationship")
+                return new_relation
+                
+        except SQLAlchemyError as e:
+            session.rollback()
+            self.logger.error(f"Failed to save series-author relationship: {str(e)}")
+            return None
+        finally:
+            session.close()
     
     def close(self):
         """Close database connection"""
