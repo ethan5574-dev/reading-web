@@ -4,18 +4,27 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, ChevronLeft, ChevronRight, Home } from "lucide-react"
 import { getChapterByNumber } from "@/fetching/chapters"
-import { getSeriesById } from "@/fetching/series"
+
+interface Series {
+  series_id: number
+  name: string
+  status: string
+  cover_url: string
+  synopsis: string
+  created_at: string
+  updated_at: string
+}
 
 interface Chapter {
   chapter_id: number
   series_id: number
-  number: number
+  number: string
   title: string
   pages_url: string[]
-  released_at: string
-  series?: {
-    name: string
-  }
+  released_at: string | null
+  created_at: string
+  updated_at: string
+  series: Series
 }
 
 export default function ChapterReaderPage() {
@@ -25,19 +34,13 @@ export default function ChapterReaderPage() {
   const chapterNumber = params.number as string
 
   const [chapter, setChapter] = useState<Chapter | null>(null)
-  const [seriesName, setSeriesName] = useState<string>("")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [chapterData, seriesData] = await Promise.all([
-          getChapterByNumber(parseInt(seriesId), parseFloat(chapterNumber)),
-          getSeriesById(parseInt(seriesId)),
-        ])
-        
-        setChapter(chapterData)
-        setSeriesName(seriesData?.name || "")
+        const response = await getChapterByNumber(parseInt(seriesId), parseFloat(chapterNumber))
+        setChapter(response.data || response)
       } catch (error) {
         console.error("Error fetching chapter:", error)
       } finally {
@@ -100,11 +103,11 @@ export default function ChapterReaderPage() {
               className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span className="text-sm">{seriesName}</span>
+              <span className="text-sm">{chapter.series?.name || "Truyện"}</span>
             </button>
             
             <h1 className="text-white text-sm font-medium">
-              Chương {chapter.number}{chapter.title ? `: ${chapter.title}` : ""}
+              Chương {chapter.title || chapter.number}
             </h1>
             
             <button

@@ -4,17 +4,19 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, BookOpen, Calendar, User } from "lucide-react"
 import { getSeriesById } from "@/fetching/series"
-import { getChaptersBySeries } from "@/fetching/chapters"
 
 interface Chapter {
-  chapter_id: number
-  number: number
+  chapter_id: string
+  series_id: string
+  number: string
   title: string
-  released_at: string
+  released_at: string | null
+  created_at: string
+  updated_at: string
 }
 
 interface Author {
-  code: number
+  code: string
   label: string
 }
 
@@ -29,6 +31,8 @@ interface SeriesDetail {
   latestChapters: Chapter[]
   totalChapters: number
   seriesAuthors?: Array<{
+    series_id: number
+    code: string
     author: Author
   }>
 }
@@ -39,22 +43,13 @@ export default function SeriesDetailPage() {
   const seriesId = params.id as string
 
   const [series, setSeries] = useState<SeriesDetail | null>(null)
-  const [chapters, setChapters] = useState<Chapter[]>([])
   const [loading, setLoading] = useState(true)
-  const [chaptersPage, setChaptersPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [seriesData, chaptersData] = await Promise.all([
-          getSeriesById(parseInt(seriesId)),
-          getChaptersBySeries(parseInt(seriesId), chaptersPage, 50),
-        ])
-        
-        setSeries(seriesData)
-        setChapters(chaptersData.chapters || [])
-        setTotalPages(chaptersData.totalPages || 1)
+        const response = await getSeriesById(parseInt(seriesId))
+        setSeries(response.data || response)
       } catch (error) {
         console.error("Error fetching series:", error)
       } finally {
@@ -63,7 +58,7 @@ export default function SeriesDetailPage() {
     }
 
     fetchData()
-  }, [seriesId, chaptersPage])
+  }, [seriesId])
 
   if (loading) {
     return (
@@ -136,78 +131,57 @@ export default function SeriesDetailPage() {
 
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-foreground mb-2">Nội dung</h2>
-              <p className="text-muted-foreground whitespace-pre-wrap">
-                {series.synopsis || "Chưa có nội dung"}
-              </p>
+              <div 
+                className="text-muted-foreground prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: series.synopsis || "Chưa có nội dung" }}
+              />
             </div>
 
-            {/* Latest Chapters */}
+            {/* Action Button */}
             {series.latestChapters && series.latestChapters.length > 0 && (
-              <div>
-                <h2 className="text-xl font-semibold text-foreground mb-2">Chương mới nhất</h2>
-                <div className="space-y-2">
-                  {series.latestChapters.slice(0, 5).map((chapter) => (
-                    <button
-                      key={chapter.chapter_id}
-                      onClick={() => router.push(`/series/${seriesId}/chapter/${chapter.number}`)}
-                      className="block w-full text-left px-4 py-2 rounded-md bg-accent hover:bg-accent/80 transition-colors"
-                    >
-                      <span className="text-accent-foreground">
-                        Chương {chapter.number}{chapter.title ? `: ${chapter.title}` : ""}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <button
+                onClick={() => router.push(`/series/${seriesId}/chapter/${series.latestChapters[0].number}`)}
+                className="w-full md:w-auto px-6 py-3 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 transition-colors font-semibold"
+              >
+                Đọc chương mới nhất
+              </button>
             )}
           </div>
         </div>
 
-        {/* All Chapters List */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Danh sách chương</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {chapters.map((chapter) => (
-              <button
-                key={chapter.chapter_id}
-                onClick={() => router.push(`/series/${seriesId}/chapter/${chapter.number}`)}
-                className="text-left px-4 py-3 rounded-md bg-card hover:bg-accent transition-colors border border-border"
-              >
-                <span className="text-foreground font-medium">
-                  Chương {chapter.number}
-                </span>
-                {chapter.title && (
-                  <span className="text-muted-foreground text-sm block mt-1">
-                    {chapter.title}
+        {/* Latest Chapters List */}
+        {series.latestChapters && series.latestChapters.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Danh sách chương ({series.totalChapters} chương)</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {series.latestChapters.map((chapter) => (
+                <button
+                  key={chapter.chapter_id}
+                  onClick={() => router.push(`/series/${seriesId}/chapter/${chapter.number}`)}
+                  className="text-left px-4 py-3 rounded-md bg-card hover:bg-accent transition-colors border border-border"
+                >
+                  <span className="text-foreground font-medium">
+                    Chương {chapter.title}
                   </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <button
-                onClick={() => setChaptersPage(prev => Math.max(1, prev - 1))}
-                disabled={chaptersPage === 1}
-                className="px-4 py-2 rounded-md bg-accent text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Trang trước
-              </button>
-              <span className="px-4 py-2 text-foreground">
-                {chaptersPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => setChaptersPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={chaptersPage === totalPages}
-                className="px-4 py-2 rounded-md bg-accent text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Trang sau
-              </button>
+                  {chapter.title && (
+                    <span className="text-muted-foreground text-sm block mt-1">
+                      {chapter.created_at}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+            
+            {series.totalChapters > 10 && (
+              <div className="mt-6 text-center">
+                <p className="text-muted-foreground text-sm">
+                  Hiển thị {series.latestChapters.length} chương gần nhất. 
+                  Nhấn vào chương bất kỳ để xem và navigate qua các chương khác.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   )
