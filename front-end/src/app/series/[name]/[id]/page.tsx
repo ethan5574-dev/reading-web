@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, BookOpen, Calendar, User } from "lucide-react"
 import { getSeriesById } from "@/fetching/series"
+import { slugify } from "@/utils"
 
 interface Chapter {
   chapter_id: string
@@ -28,7 +29,8 @@ interface SeriesDetail {
   synopsis: string
   created_at: string
   updated_at: string
-  latestChapters: Chapter[]
+  chapters: Chapter[] // Toàn bộ danh sách chapters
+  latestChapters: Chapter[] // 10 chapters mới nhất
   totalChapters: number
   seriesAuthors?: Array<{
     series_id: number
@@ -41,6 +43,7 @@ export default function SeriesDetailPage() {
   const params = useParams()
   const router = useRouter()
   const seriesId = params.id as string
+  const seriesName = params.name as string
 
   const [series, setSeries] = useState<SeriesDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -49,6 +52,7 @@ export default function SeriesDetailPage() {
     const fetchData = async () => {
       try {
         const response = await getSeriesById(parseInt(seriesId))
+        console.log('Series data:', response)
         setSeries(response.data || response)
       } catch (error) {
         console.error("Error fetching series:", error)
@@ -140,7 +144,7 @@ export default function SeriesDetailPage() {
             {/* Action Button */}
             {series.latestChapters && series.latestChapters.length > 0 && (
               <button
-                onClick={() => router.push(`/series/${seriesId}/chapter/${series.latestChapters[0].number}`)}
+                onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${series.latestChapters[0].number}`)}
                 className="w-full md:w-auto px-6 py-3 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 transition-colors font-semibold"
               >
                 Đọc chương mới nhất
@@ -149,15 +153,15 @@ export default function SeriesDetailPage() {
           </div>
         </div>
 
-        {/* Latest Chapters List */}
-        {series.latestChapters && series.latestChapters.length > 0 && (
+        {/* All Chapters List */}
+        {series.chapters && series.chapters.length > 0 && (
           <div className="mt-8">
             <h2 className="text-2xl font-bold text-foreground mb-4">Danh sách chương ({series.totalChapters} chương)</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {series.latestChapters.map((chapter) => (
+              {series.chapters.map((chapter) => (
                 <button
                   key={chapter.chapter_id}
-                  onClick={() => router.push(`/series/${seriesId}/chapter/${chapter.number}`)}
+                  onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${chapter.number}`)}
                   className="text-left px-4 py-3 rounded-md bg-card hover:bg-accent transition-colors border border-border"
                 >
                   <span className="text-foreground font-medium">
@@ -171,15 +175,6 @@ export default function SeriesDetailPage() {
                 </button>
               ))}
             </div>
-            
-            {series.totalChapters > 10 && (
-              <div className="mt-6 text-center">
-                <p className="text-muted-foreground text-sm">
-                  Hiển thị {series.latestChapters.length} chương gần nhất. 
-                  Nhấn vào chương bất kỳ để xem và navigate qua các chương khác.
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>

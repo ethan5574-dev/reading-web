@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { slugify } from "@/utils"
 
 interface StoryCardProps {
   id: number
@@ -14,10 +15,11 @@ interface StoryCardProps {
 
 export default function StoryCard({ id, title, episodes, chapter, image, isHot, isNew }: StoryCardProps) {
   const router = useRouter()
+  const slug = slugify(title)
 
   return (
     <div
-      onClick={() => router.push(`/series/${id}`)}
+      onClick={() => router.push(`/series/${slug}/${id}`)}
       className="group cursor-pointer"
     >
       <div className="relative mb-2 overflow-hidden rounded-md shadow-md transition-transform duration-300 hover:scale-105">

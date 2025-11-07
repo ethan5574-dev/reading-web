@@ -33,3 +33,25 @@ export const delay = (ms: number) =>
 export const customUnitFn = (px: any, baseFontSize = 16) => {
   return `${px / baseFontSize}rem`;
 };
+
+/**
+ * Convert tên series thành slug để dùng cho URL
+ * Ví dụ: "Ta Không Muốn Làm Anh Hùng" -> "ta-khong-muon-lam-anh-hung"
+ */
+export const slugify = (text: string): string => {
+  if (!text) return '';
+  
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD') // Chuẩn hóa Unicode
+    .replace(/[\u0300-\u036f]/g, '') // Xóa dấu
+    .replace(/đ/g, 'd') // Đổi đ thành d
+    .replace(/Đ/g, 'D') // Đổi Đ thành D
+    .trim()
+    .replace(/\s+/g, '-') // Thay khoảng trắng bằng -
+    .replace(/[^\w\-]+/g, '') // Xóa ký tự đặc biệt
+    .replace(/\-\-+/g, '-') // Thay nhiều - bằng 1 -
+    .replace(/^-+/, '') // Xóa - ở đầu
+    .replace(/-+$/, ''); // Xóa - ở cuối
+};

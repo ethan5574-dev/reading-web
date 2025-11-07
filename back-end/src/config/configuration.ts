@@ -7,9 +7,8 @@ export default () => ({
     username: process.env.DB_USER ?? 'root',
     password: process.env.DB_PASSWORD ?? '',
     name: process.env.DB_NAME ?? 'app_db',
-    synchronize:
-      (process.env.DB_SYNC ?? '').toLowerCase() === 'true' ||
-      (process.env.NODE_ENV ?? 'development') === 'development',
+    // TẮT synchronize mặc định, chỉ bật khi DB_SYNC=true trong .env
+    synchronize: process.env.DB_SYNC?.toLowerCase() === 'true',
   },
   aws: {
     region: process.env.AWS_REGION ?? 'ap-southeast-1',

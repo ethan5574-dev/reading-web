@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, ChevronLeft, ChevronRight, Home } from "lucide-react"
 import { getChapterByNumber } from "@/fetching/chapters"
+import { slugify } from "@/utils"
 
 interface Series {
   series_id: number
@@ -31,6 +32,7 @@ export default function ChapterReaderPage() {
   const params = useParams()
   const router = useRouter()
   const seriesId = params.id as string
+  const seriesName = params.name as string
   const chapterNumber = params.number as string
 
   const [chapter, setChapter] = useState<Chapter | null>(null)
@@ -54,13 +56,13 @@ export default function ChapterReaderPage() {
   const handlePrevChapter = () => {
     const prevNumber = parseFloat(chapterNumber) - 1
     if (prevNumber > 0) {
-      router.push(`/series/${seriesId}/chapter/${prevNumber}`)
+      router.push(`/series/${seriesName}/${seriesId}/chapter/${prevNumber}`)
     }
   }
 
   const handleNextChapter = () => {
     const nextNumber = parseFloat(chapterNumber) + 1
-    router.push(`/series/${seriesId}/chapter/${nextNumber}`)
+    router.push(`/series/${seriesName}/${seriesId}/chapter/${nextNumber}`)
   }
 
   if (loading) {
@@ -80,7 +82,7 @@ export default function ChapterReaderPage() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Không tìm thấy chương</p>
           <button
-            onClick={() => router.push(`/series/${seriesId}`)}
+            onClick={() => router.push(`/series/${seriesName}/${seriesId}`)}
             className="px-4 py-2 rounded-md bg-accent text-accent-foreground"
           >
             Quay lại trang truyện
@@ -99,7 +101,7 @@ export default function ChapterReaderPage() {
         <div className="mx-auto max-w-4xl px-4 py-3">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => router.push(`/series/${seriesId}`)}
+              onClick={() => router.push(`/series/${slugify(chapter.series?.name || "")}/${seriesId}`)}
               className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -156,7 +158,7 @@ export default function ChapterReaderPage() {
             </button>
             
             <button
-              onClick={() => router.push(`/series/${seriesId}`)}
+              onClick={() => router.push(`/series/${seriesName}/${seriesId}`)}
               className="px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 transition-colors"
             >
               Danh sách chương

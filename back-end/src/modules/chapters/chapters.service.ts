@@ -50,8 +50,8 @@ export class ChaptersService {
 
         return chapter;
     }
-    // Lấy chapter theo series_id và chapter number
-    async getChapterByNumber(seriesId: number, chapterNumber: number): Promise<Chapters> {
+    // Lấy chapter theo series_id và chapter number (với next/previous)
+    async getChapterByNumber(seriesId: number, chapterNumber: number): Promise<any> {
         const chapter = await this.chaptersRepository.findOne({ 
             where: { series_id: seriesId, number: chapterNumber },
             relations: ['series'],
@@ -61,7 +61,37 @@ export class ChaptersService {
             throw new Error('Chapter not found');
         }
 
-        return chapter;
+        // Lấy chapter trước (số nhỏ hơn gần nhất)
+        const previousChapter = await this.chaptersRepository
+            .createQueryBuilder('chapters')
+            .where('chapters.series_id = :seriesId', { seriesId })
+            .andWhere('chapters.number < :currentNumber', { currentNumber: chapterNumber })
+            .orderBy('chapters.number', 'DESC')
+            .limit(1)
+            .getOne();
+
+        // Lấy chapter sau (số lớn hơn gần nhất)
+        const nextChapter = await this.chaptersRepository
+            .createQueryBuilder('chapters')
+            .where('chapters.series_id = :seriesId', { seriesId })
+            .andWhere('chapters.number > :currentNumber', { currentNumber: chapterNumber })
+            .orderBy('chapters.number', 'ASC')
+            .limit(1)
+            .getOne();
+
+        return {
+            ...chapter,
+            previousChapter: previousChapter ? {
+                chapter_id: previousChapter.chapter_id,
+                number: previousChapter.number,
+                title: previousChapter.title,
+            } : null,
+            nextChapter: nextChapter ? {
+                chapter_id: nextChapter.chapter_id,
+                number: nextChapter.number,
+                title: nextChapter.title,
+            } : null,
+        };
     }
 
     // Lấy chapter trước/sau (để navigation)

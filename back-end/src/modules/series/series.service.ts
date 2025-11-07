@@ -88,36 +88,27 @@ export class SeriesService {
                 return null;
             }
 
-            // Lấy 10 chương mới nhất
-            const latestChapters = await this.seriesRepository.manager
+            // Lấy tất cả chapters (chỉ lấy id, number, title)
+            const allChapters = await this.seriesRepository.manager
                 .createQueryBuilder()
-                .select('chapters')
+                .select(['chapters.chapter_id', 'chapters.number', 'chapters.title'])
                 .from('chapters', 'chapters')
                 .where('chapters.series_id = :seriesId', { seriesId: id })
-                .orderBy('chapters.number', 'DESC')
-                .limit(10)
+                // .orderBy('chapters.number', 'DESC')
                 .getRawMany();
+            console.log(allChapters)
 
-            // Đếm tổng số chapter
-            const chapterCount = await this.seriesRepository.manager
-                .createQueryBuilder()
-                .select('COUNT(*)', 'count')
-                .from('chapters', 'chapters')
-                .where('chapters.series_id = :seriesId', { seriesId: id })
-                .getRawOne();
+            // Lấy 10 chương mới nhất với đầy đủ thông tin
+            const latestChapters = allChapters.slice(0, 10);
 
             return {
                 ...series,
                 latestChapters: latestChapters.map(ch => ({
                     chapter_id: ch.chapters_chapter_id,
-                    series_id: ch.chapters_series_id,
                     number: ch.chapters_number,
                     title: ch.chapters_title,
-                    released_at: ch.chapters_released_at,
-                    created_at: ch.chapters_created_at,
-                    updated_at: ch.chapters_updated_at,
                 })),
-                totalChapters: parseInt(chapterCount?.count || '0'),
+                totalChapters: allChapters.length,
             };
         } catch (error) {
             console.error('Error fetching series by ID:', error);
