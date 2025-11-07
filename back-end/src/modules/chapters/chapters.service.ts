@@ -111,4 +111,47 @@ export class ChaptersService {
 
         return { previous, next };
     }
+
+    // Lấy chapter theo title (CHẬM HƠN so với number)
+    async getChapterByTitle(seriesId: number, title: string): Promise<any> {
+        const chapter = await this.chaptersRepository.findOne({ 
+            where: { series_id: seriesId, title: title },
+            relations: ['series'],
+        });
+
+        if (!chapter) {
+            throw new Error('Chapter not found');
+        }
+
+        // Lấy chapter trước/sau
+        const previousChapter = await this.chaptersRepository
+            .createQueryBuilder('chapters')
+            .where('chapters.series_id = :seriesId', { seriesId })
+            .andWhere('chapters.number < :currentNumber', { currentNumber: chapter.number })
+            .orderBy('chapters.number', 'DESC')
+            .limit(1)
+            .getOne();
+
+        const nextChapter = await this.chaptersRepository
+            .createQueryBuilder('chapters')
+            .where('chapters.series_id = :seriesId', { seriesId })
+            .andWhere('chapters.number > :currentNumber', { currentNumber: chapter.number })
+            .orderBy('chapters.number', 'ASC')
+            .limit(1)
+            .getOne();
+
+        return {
+            ...chapter,
+            previousChapter: previousChapter ? {
+                chapter_id: previousChapter.chapter_id,
+                number: previousChapter.number,
+                title: previousChapter.title,
+            } : null,
+            nextChapter: nextChapter ? {
+                chapter_id: nextChapter.chapter_id,
+                number: nextChapter.number,
+                title: nextChapter.title,
+            } : null,
+        };
+    }
 }

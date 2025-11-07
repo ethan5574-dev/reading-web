@@ -48,4 +48,16 @@ export class ChaptersController {
             parseFloat(number),
         );
     }
+
+    // GET /chapters/series/:seriesId/title/:title - Lấy chapter theo title (CHẬM HƠN)
+    @Get('series/:seriesId/title/:title')
+    async getChapterByTitle(
+        @Param('seriesId') seriesId: string,
+        @Param('title') title: string,
+    ) {
+        return this.chaptersService.getChapterByTitle(
+            parseInt(seriesId),
+            decodeURIComponent(title), // Decode URL-encoded title
+        );
+    }
 }

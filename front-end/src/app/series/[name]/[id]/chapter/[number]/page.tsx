@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, ChevronLeft, ChevronRight, Home } from "lucide-react"
-import { getChapterByNumber } from "@/fetching/chapters"
+import { getChapterByTitle } from "@/fetching/chapters"
 import { slugify } from "@/utils"
 
 interface Series {
@@ -26,6 +26,16 @@ interface Chapter {
   created_at: string
   updated_at: string
   series: Series
+  previousChapter?: {
+    chapter_id: number
+    number: string
+    title: string
+  } | null
+  nextChapter?: {
+    chapter_id: number
+    number: string
+    title: string
+  } | null
 }
 
 export default function ChapterReaderPage() {
@@ -33,7 +43,7 @@ export default function ChapterReaderPage() {
   const router = useRouter()
   const seriesId = params.id as string
   const seriesName = params.name as string
-  const chapterNumber = params.number as string
+  const chapterTitle = params.number as string // number trong URL thực ra là title (290, 289...)
 
   const [chapter, setChapter] = useState<Chapter | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,7 +51,7 @@ export default function ChapterReaderPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getChapterByNumber(parseInt(seriesId), parseFloat(chapterNumber))
+        const response = await getChapterByTitle(parseInt(seriesId), chapterTitle)
         setChapter(response.data || response)
       } catch (error) {
         console.error("Error fetching chapter:", error)
@@ -51,18 +61,18 @@ export default function ChapterReaderPage() {
     }
 
     fetchData()
-  }, [seriesId, chapterNumber])
+  }, [seriesId, chapterTitle])
 
   const handlePrevChapter = () => {
-    const prevNumber = parseFloat(chapterNumber) - 1
-    if (prevNumber > 0) {
-      router.push(`/series/${seriesName}/${seriesId}/chapter/${prevNumber}`)
+    if (chapter?.previousChapter) {
+      router.push(`/series/${seriesName}/${seriesId}/chapter/${chapter.previousChapter.title}`)
     }
   }
 
   const handleNextChapter = () => {
-    const nextNumber = parseFloat(chapterNumber) + 1
-    router.push(`/series/${seriesName}/${seriesId}/chapter/${nextNumber}`)
+    if (chapter?.nextChapter) {
+      router.push(`/series/${seriesName}/${seriesId}/chapter/${chapter.nextChapter.title}`)
+    }
   }
 
   if (loading) {
@@ -151,7 +161,7 @@ export default function ChapterReaderPage() {
             <button
               onClick={handlePrevChapter}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={parseFloat(chapterNumber) <= 1}
+              disabled={!chapter?.previousChapter}
             >
               <ChevronLeft className="h-5 w-5" />
               <span>Chương trước</span>
@@ -166,7 +176,8 @@ export default function ChapterReaderPage() {
             
             <button
               onClick={handleNextChapter}
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!chapter?.nextChapter}
             >
               <span>Chương sau</span>
               <ChevronRight className="h-5 w-5" />

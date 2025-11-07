@@ -4,6 +4,7 @@ import { ChapterViewStatsDaily } from './chapter-view-stats-daily.entity';
 
 @Entity('chapters')
 @Index(['series_id', 'number'])
+@Index(['series_id', 'title']) // Thêm index cho tìm kiếm theo title
 export class Chapters {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   chapter_id: number;

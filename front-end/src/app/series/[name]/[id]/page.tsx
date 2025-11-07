@@ -144,7 +144,7 @@ export default function SeriesDetailPage() {
             {/* Action Button */}
             {series.latestChapters && series.latestChapters.length > 0 && (
               <button
-                onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${series.latestChapters[0].number}`)}
+                onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${series.latestChapters[0].title}`)}
                 className="w-full md:w-auto px-6 py-3 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 transition-colors font-semibold"
               >
                 Đọc chương mới nhất
@@ -154,14 +154,14 @@ export default function SeriesDetailPage() {
         </div>
 
         {/* All Chapters List */}
-        {series.chapters && series.chapters.length > 0 && (
+        {series.latestChapters && series.latestChapters.length > 0 && (
           <div className="mt-8">
             <h2 className="text-2xl font-bold text-foreground mb-4">Danh sách chương ({series.totalChapters} chương)</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {series.chapters.map((chapter) => (
+              {series.latestChapters.map((chapter) => (
                 <button
                   key={chapter.chapter_id}
-                  onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${chapter.number}`)}
+                  onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${chapter.title}`)}
                   className="text-left px-4 py-3 rounded-md bg-card hover:bg-accent transition-colors border border-border"
                 >
                   <span className="text-foreground font-medium">

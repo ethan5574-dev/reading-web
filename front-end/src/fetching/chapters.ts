@@ -10,8 +10,15 @@ export const getChapterById = async (chapterId: number) => {
   return response.data;
 };
 
+// DEPRECATED: number là số ảnh, không duy nhất
 export const getChapterByNumber = async (seriesId: number, chapterNumber: number) => {
   const response = await AxiosInstance.get(`/chapters/series/${seriesId}/number/${chapterNumber}`);
+  return response.data;
+};
+
+// ✅ DÙNG CÁI NÀY: title là số chương thực sự (290, 289...)
+export const getChapterByTitle = async (seriesId: number, chapterTitle: string) => {
+  const response = await AxiosInstance.get(`/chapters/series/${seriesId}/title/${encodeURIComponent(chapterTitle)}`);
   return response.data;
 };
 
