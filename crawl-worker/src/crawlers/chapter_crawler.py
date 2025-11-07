@@ -1,7 +1,7 @@
 """
 Level 2: Crawl chapter list from series page
 """
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from bs4 import BeautifulSoup
 from ..base.crawler import BaseCrawler
@@ -39,12 +39,16 @@ class ChapterCrawler(BaseCrawler):
             # Extract authors information
             authors = self._extract_authors(soup, final_url)
             
-            self.logger.info(f"Found {len(chapter_data)} chapters and {len(authors)} authors")
+            # Extract synopsis (HTML content)
+            synopsis = self._extract_synopsis(soup, final_url)
             
-            # Return both chapters and authors
+            self.logger.info(f"Found {len(chapter_data)} chapters, {len(authors)} authors, and synopsis")
+            
+            # Return chapters, authors, and synopsis
             result_data = {
                 "chapters": chapter_data,
-                "authors": authors
+                "authors": authors,
+                "synopsis": synopsis
             }
             
             return CrawlResult(
@@ -175,3 +179,35 @@ class ChapterCrawler(BaseCrawler):
                 continue
         
         return authors
+    
+    def _extract_synopsis(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+        """Extract synopsis HTML from element with class detail-content"""
+        try:
+            # Find element with class detail-content
+            synopsis_element = soup.select_one(".detail-content")
+            
+            if not synopsis_element:
+                self.logger.warning("No synopsis element found (class: detail-content)")
+                return None
+            
+            # Convert relative URLs to absolute URLs in the HTML
+            # Find all img, a tags with relative URLs
+            for img in synopsis_element.find_all("img"):
+                src = img.get("src")
+                if src and not src.startswith(("http://", "https://")):
+                    img["src"] = self.make_absolute_url(base_url, src)
+            
+            for link in synopsis_element.find_all("a"):
+                href = link.get("href")
+                if href and not href.startswith(("http://", "https://")):
+                    link["href"] = self.make_absolute_url(base_url, href)
+            
+            # Get the HTML content (preserve formatting)
+            synopsis_html = str(synopsis_element)
+            
+            self.logger.info("Synopsis extracted successfully")
+            return synopsis_html
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to extract synopsis: {str(e)}")
+            return None

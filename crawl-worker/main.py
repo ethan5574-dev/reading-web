@@ -4,6 +4,7 @@ Main entry point for the crawler system
 import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 from typing import List, Dict, Any
@@ -19,7 +20,8 @@ from src.crawlers.chapter_crawler import ChapterCrawler
 from src.crawlers.downloader import ChapterImageDownloader
 from src.base.s3_uploader import S3Uploader
 from src.base.db_client import DatabaseClient
-from src.utils.file_utils import slugify, chapter_slugify
+from src.utils.file_utils import slugify, chapter_slugify, ensure_dir, ext_from_content_type, ext_from_url, atomic_write
+import requests
 
 
 class CrawlerOrchestrator:
@@ -142,15 +144,17 @@ class CrawlerOrchestrator:
                         results["errors"].append(f"Chapter crawl failed for {series_data['title']}: {chapter_result.error_message}")
                         continue
                     
-                    # Extract chapters and authors from result
+                    # Extract chapters, authors, and synopsis from result
                     chapter_data_result = chapter_result.data
                     if isinstance(chapter_data_result, dict):
                         chapters = chapter_data_result.get("chapters", [])
                         authors = chapter_data_result.get("authors", [])
+                        synopsis = chapter_data_result.get("synopsis")
                     else:
                         # Backward compatibility: if data is still a list
                         chapters = chapter_data_result
                         authors = []
+                        synopsis = None
                     
                     results["total_chapters"] += len(chapters)
                     
@@ -163,7 +167,8 @@ class CrawlerOrchestrator:
                     series_with_chapters = {
                         **series_data,
                         "chapters": [],
-                        "authors": authors
+                        "authors": authors,
+                        "synopsis": synopsis
                     }
                     
                     for chapter_data in chapters:
@@ -257,6 +262,32 @@ def _cmd_download(orchestrator: CrawlerOrchestrator, args: List[str]):
     total_downloaded = 0
     for series in results.get("series", []):
         title = series.get("title")
+        # Download cover image if available
+        cover_url = series.get("cover_image")
+        if cover_url:
+            try:
+                headers = {
+                    "User-Agent": orchestrator.crawl_config.user_agent,
+                    "Referer": orchestrator.crawl_config.base_url,
+                    "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+                }
+                resp = requests.get(cover_url, headers=headers, timeout=orchestrator.crawl_config.timeout)
+                resp.raise_for_status()
+                content_type = resp.headers.get("Content-Type")
+                ext = ext_from_content_type(content_type) or ext_from_url(cover_url) or ".jpg"
+                series_slug = slugify(title or "unknown")
+                series_dir = f"data/images/{series_slug}"
+                ensure_dir(series_dir)
+                local_cover_path = f"{series_dir}/cover{ext}"
+                atomic_write(local_cover_path, resp.content)
+                series["local_cover"] = {
+                    "local_path": local_cover_path,
+                    "bytes": len(resp.content),
+                    "content_type": content_type,
+                    "downloaded_at": datetime.now().isoformat(),
+                }
+            except Exception as e:
+                print(f"[!] Failed to download cover for {title}: {str(e)}")
         for chapter in series.get("chapters", []):
             manifest = orchestrator.downloader.download_chapter(
                 chapter_url=chapter["chapter_url"],
@@ -299,6 +330,50 @@ def _cmd_upload(orchestrator: CrawlerOrchestrator, args: List[str]):
     for series in results.get("series", []):
         series_title = series.get("title", "unknown")
         series_slug = slugify(series_title)
+        # Upload cover image to S3 (prefer local cover if downloaded)
+        local_cover = series.get("local_cover")
+        if local_cover and os.path.exists(local_cover.get("local_path", "")):
+            local_cover_path = local_cover["local_path"]
+            ext = os.path.splitext(local_cover_path)[1] or ".jpg"
+            s3_key = f"stories/{series_slug}/cover{ext}"
+            s3_url = orchestrator.s3_uploader.upload_file(local_cover_path, s3_key)
+            if s3_url:
+                series["cover_s3"] = s3_url
+                series["cover_upload"] = {
+                    "local_path": local_cover_path,
+                    "s3_key": s3_key,
+                    "s3_url": s3_url,
+                }
+        else:
+            cover_url = series.get("cover_image")
+            if cover_url:
+                try:
+                    headers = {
+                        "User-Agent": orchestrator.crawl_config.user_agent,
+                        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+                        "Referer": orchestrator.crawl_config.base_url,
+                    }
+                    resp = requests.get(cover_url, headers=headers, timeout=orchestrator.crawl_config.timeout)
+                    resp.raise_for_status()
+                    content_type = resp.headers.get("Content-Type")
+                    ext = ext_from_content_type(content_type) or ext_from_url(cover_url) or ".jpg"
+                    series_dir = f"data/images/{series_slug}"
+                    ensure_dir(series_dir)
+                    local_cover_path = f"{series_dir}/cover{ext}"
+                    atomic_write(local_cover_path, resp.content)
+                    s3_key = f"stories/{series_slug}/cover{ext}"
+                    s3_url = orchestrator.s3_uploader.upload_file(local_cover_path, s3_key)
+                    if s3_url:
+                        series["cover_s3"] = s3_url
+                        series["cover_upload"] = {
+                            "local_path": local_cover_path,
+                            "s3_key": s3_key,
+                            "s3_url": s3_url,
+                            "bytes": len(resp.content),
+                            "content_type": content_type,
+                        }
+                except Exception as e:
+                    print(f"[!] Failed to upload cover for {series_title}: {str(e)}")
         
         for chapter in series.get("chapters", []):
             chapter_number = chapter.get("chapter_number", "unknown")
@@ -367,11 +442,11 @@ def _cmd_database(orchestrator: CrawlerOrchestrator, args: List[str]):
         
         print(f"Saving series: {series_title}")
         
-        # Save series
+        # Save series (prefer S3 cover if available, prefer crawled synopsis HTML)
         series_obj = orchestrator.db_client.save_series({
             'name': series_title,
-            'cover_url': series_data.get('cover_image'),
-            'synopsis': series_data.get('description', ''),
+            'cover_url': series_data.get('cover_s3') or series_data.get('cover_image'),
+            'synopsis': series_data.get('synopsis') or series_data.get('description', ''),
             'status': 'ongoing'
         })
         
@@ -421,11 +496,24 @@ def _cmd_database(orchestrator: CrawlerOrchestrator, args: List[str]):
             
             # Set chapter_num as number of images in this chapter
             chapter_num = len(pages_url)
+            
+            # Extract chapter number string (e.g., "420" or "420.5") from chapter_number
+            # Remove "Chương", "Chapter", etc. and extract the number
+            chapter_number_str = chapter_number
+            # Remove common prefixes
+            chapter_number_str = re.sub(r'^(Chương|Chapter|Chap)\s*', '', chapter_number_str, flags=re.IGNORECASE)
+            # Extract number (can be decimal like 420.5)
+            number_match = re.search(r'(\d+\.?\d*)', chapter_number_str)
+            if number_match:
+                chapter_title = number_match.group(1)  # e.g., "420" or "420.5"
+            else:
+                # Fallback: use original chapter_number if no number found
+                chapter_title = chapter_number.strip()
 
             # Save chapter
             chapter_obj = orchestrator.db_client.save_chapter(series_obj, {
                 'number': chapter_num,
-                'title': chapter_data.get('title', ''),
+                'title': chapter_title,  # Store chapter number as string (e.g., "420" or "420.5")
                 'pages_url': pages_url,
                 'released_at': None
             })

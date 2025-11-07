@@ -145,30 +145,26 @@ class DatabaseClient:
             session.close()
     
     def save_author(self, author_name: str) -> Optional[Author]:
-        """Save or get author by name"""
+        """Save or get author by name (code is auto-generated)"""
         session = self.get_session()
         try:
-            # Generate code from name (slug-like)
-            author_code = re.sub(r'[^a-zA-Z0-9]', '_', author_name.lower())[:40]
-            
-            # Check if author exists
+            # Check if author exists by label (name)
             existing_author = session.query(Author).filter(
-                Author.code == author_code
+                Author.label == author_name
             ).first()
             
             if existing_author:
                 self.logger.info(f"Author already exists: {author_name}")
                 return existing_author
             else:
-                # Create new author
+                # Create new author (code will be auto-generated)
                 new_author = Author(
-                    code=author_code,
                     label=author_name
                 )
                 session.add(new_author)
                 session.commit()
                 session.refresh(new_author)
-                self.logger.info(f"Created new author: {author_name}")
+                self.logger.info(f"Created new author: {author_name} (code: {new_author.code})")
                 return new_author
                 
         except SQLAlchemyError as e:

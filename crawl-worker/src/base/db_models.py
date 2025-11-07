@@ -51,7 +51,7 @@ class Author(Base):
     """Author table"""
     __tablename__ = 'author'
     
-    code = Column(String(40), primary_key=True)
+    code = Column(BigInteger, primary_key=True, autoincrement=True)
     label = Column(String(80), nullable=False)
 
 
@@ -60,7 +60,7 @@ class SeriesAuthor(Base):
     __tablename__ = 'series_author'
     
     series_id = Column(BigInteger, ForeignKey('series.series_id'), nullable=False, primary_key=True)
-    code = Column(String(40), ForeignKey('author.code'), nullable=False, primary_key=True)
+    code = Column(BigInteger, ForeignKey('author.code'), nullable=False, primary_key=True)
     
     # Relationships
     series = relationship("Series")

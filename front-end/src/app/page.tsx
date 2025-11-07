@@ -1,7 +1,10 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Search, Star, Flame, Cloud } from "lucide-react"
 import StoryCard from "@/components/StoryCard"
+import { getAllSeries } from "@/fetching/series"
+
 const navItems = [
   { label: "Trang Chủ", href: "#" },
   { label: "Thể Loại", href: "#" },
@@ -14,177 +17,84 @@ const navItems = [
   { label: "Thảo Luận", href: "#" },
 ]
 
+interface Series {
+  series_id: number
+  name: string
+  status: string
+  cover_url: string
+  synopsis: string
+  created_at: string
+  updated_at: string
+  latestChapters: string[]
+  totalChapters: number
+}
+
 export default function Home() {
-  const hotStories = [
-    {
-      id: 1,
-      title: "Câu Bé Của Thần Chết",
-      episodes: "1 Giới Truyện",
-      chapter: "Chương 303",
-      image: "/image.png",
-      isHot: true,
-    },
-    {
-      id: 2,
-      title: "Gây Gổ Cấp 99+",
-      episodes: "7 Giới Truyện",
-      chapter: "Chương 1675",
-      image: "/image.png",
-      isHot: true,
-    },
-    {
-      id: 3,
-      title: "Vô Luyện Định Phong",
-      episodes: "9 Giới Truyện",
-      chapter: "Chương 3853",
-      image: "/image.png",
-      isHot: true,
-    },
-    {
-      id: 4,
-      title: "Tuyệt Thế Đường Môn",
-      episodes: "1 Ngoài Truyện",
-      chapter: "Chương 574",
-      image: "/image.png",
-      isHot: true,
-    },
-    {
-      id: 5,
-      title: "One Piece",
-      episodes: "1 Ngoài Truyện",
-      chapter: "Chương 1164",
-      image: "/image.png",
-      isHot: true,
-    },
-    {
-      id: 6,
-      title: "Hoàn Quan Hồi Quy 1",
-      episodes: "1 Ngoài Truyện",
-      chapter: "Chương 61",
-      image: "/image.png",
-      isHot: true,
-    },
-  ]
+  const [series, setSeries] = useState<Series[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const exclusiveStories = [
-    {
-      id: 7,
-      title: "Trong Sinh Độ Thị Tu Tiên",
-      episodes: "16 Phát Trước",
-      chapter: "Chương 1115",
-      image: "/image.png",
-      isNew: false,
-    },
-    {
-      id: 8,
-      title: "Ta Muốn Phong Thiên",
-      episodes: "1 Giới Truyện",
-      chapter: "Chương 11",
-      image: "/image.png",
-      isNew: false,
-    },
-    {
-      id: 9,
-      title: "Chàng Rể Mạnh Nhất",
-      episodes: "3 Giới Truyện",
-      chapter: "Chương 347",
-      image: "/image.png",
-      isNew: false,
-    },
-    {
-      id: 10,
-      title: "Anh Sáng Arad",
-      episodes: "5 Giới Truyện",
-      chapter: "Chương 51",
-      image: "/image.png",
-      isNew: false,
-    },
-    {
-      id: 11,
-      title: "Một Con Dao Mộ Lộn",
-      episodes: "6 Giới Truyện",
-      chapter: "Chương 17",
-      image: "/image.png",
-      isNew: false,
-    },
-    {
-      id: 12,
-      title: "Mạnh Nhất Lịch Sử",
-      episodes: "7 Giới Truyện",
-      chapter: "Chương 241",
-      image: "/image.png",
-      isNew: false,
-    },
-  ]
+  useEffect(() => {
+    const fetchSeries = async () => {
+      try {
+        const response = await getAllSeries(1, 18) // Fetch 18 series for 3 sections
+        console.log(response)
+        setSeries(response?.data?.series || [])
+      } catch (error) {
+        console.error("Error fetching series:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const newStories = [
-    {
-      id: 13,
-      title: "Bộ Tối Lạo Độc Vụ",
-      episodes: "6 Phát Trước",
-      chapter: "Chapter 216",
-      image: "/image.png",
-      isNew: true,
-    },
-    {
-      id: 14,
-      title: "Thiên Tài Vô Thuật Hội",
-      episodes: "26 Phát Trước",
-      chapter: "Chapter 115",
-      image: "/image.png",
-      isNew: true,
-    },
-    {
-      id: 15,
-      title: "Vợ Tôi Có Thể Nhân Thế",
-      episodes: "36 Phát Trước",
-      chapter: "Chapter 107",
-      image: "/image.png",
-      isNew: true,
-    },
-    {
-      id: 16,
-      title: "Trả Thành Cương Nhân",
-      episodes: "42 Phát Trước",
-      chapter: "Chapter 8",
-      image: "/image.png",
-      isNew: true,
-    },
-    {
-      id: 17,
-      title: "Mạhouka Koukou No Re",
-      episodes: "42 Phát Trước",
-      chapter: "Chapter 20",
-      image: "/image.png",
-      isNew: true,
-    },
-    {
-      id: 18,
-      title: "Trở Thành Thiên Tài Tiên",
-      episodes: "1 Giới Truyện",
-      chapter: "Chapter 33",
-      image: "/image.png",
-      isNew: true,
-    },
-  ]
+    fetchSeries()
+  }, [])
+
+  // Map series data to story card format
+  const mapSeriesToStory = (s: Series) => {
+    
+
+    return {
+      id: s.series_id,
+      title: s.name,
+      episodes: `${s.totalChapters || 0} Chương`,
+      chapter: s.latestChapters,
+      image: s.cover_url || "/placeholder.svg",
+    }
+  }
+
+  // Split series into 3 sections (6 items each)
+  const hotStories = series.slice(0, 6).map(s => ({ ...mapSeriesToStory(s), isHot: true }))
+  const exclusiveStories = series.slice(6, 12).map(s => ({ ...mapSeriesToStory(s), isNew: false }))
+  const newStories = series.slice(12, 18).map(s => ({ ...mapSeriesToStory(s), isNew: true }))
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Đang tải truyện...</p>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-background">
       <nav className="border-b border-border bg-accent">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex overflow-x-auto">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="whitespace-nowrap px-4 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
-            >
-              {item.label}
-            </a>
-          ))}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex overflow-x-auto">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="whitespace-nowrap px-4 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Popular Stories Section */}
@@ -194,9 +104,13 @@ export default function Home() {
             <h2 className="text-xl font-bold text-foreground">Truyện Hay</h2>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {hotStories.map((story) => (
-              <StoryCard key={story.id} {...story} />
-            ))}
+            {hotStories.length > 0 ? (
+              hotStories.map((story) => (
+                <StoryCard key={story.id} {...story} />
+              ))
+            ) : (
+              <p className="col-span-full text-center text-muted-foreground">Chưa có truyện</p>
+            )}
           </div>
         </section>
 
@@ -207,9 +121,13 @@ export default function Home() {
             <h2 className="text-xl font-bold text-foreground">Độc Quyền Truyện QQ</h2>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {exclusiveStories.map((story) => (
-              <StoryCard key={story.id} {...story} />
-            ))}
+            {exclusiveStories.length > 0 ? (
+              exclusiveStories.map((story) => (
+                <StoryCard key={story.id} {...story} />
+              ))
+            ) : (
+              <p className="col-span-full text-center text-muted-foreground">Chưa có truyện</p>
+            )}
           </div>
         </section>
 
@@ -225,9 +143,13 @@ export default function Home() {
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {newStories.map((story) => (
-              <StoryCard key={story.id} {...story} />
-            ))}
+            {newStories.length > 0 ? (
+              newStories.map((story) => (
+                <StoryCard key={story.id} {...story} />
+              ))
+            ) : (
+              <p className="col-span-full text-center text-muted-foreground">Chưa có truyện</p>
+            )}
           </div>
         </section>
       </div>
