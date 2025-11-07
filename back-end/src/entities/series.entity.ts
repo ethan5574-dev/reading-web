@@ -4,7 +4,7 @@ import { SeriesAuthor } from './series-author.entity';
 
 @Entity('series')
 export class Series {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn({ type: 'bigint' })
   series_id: number;
 
   @Column({ type: 'varchar', length: 250, nullable: false })

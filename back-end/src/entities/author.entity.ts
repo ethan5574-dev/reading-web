@@ -3,7 +3,7 @@ import { SeriesAuthor } from './series-author.entity';
 
 @Entity('author')
 export class Author {
-  @Column({ type: 'int', primary: true, generated: 'increment' })
+  @Column({ type: 'bigint', primary: true, generated: 'increment' })
   code: number;
 
   @Column({ type: 'varchar', length: 80, nullable: false })

@@ -6,10 +6,10 @@ import { Author } from './author.entity';
 @Index(['series_id', 'code'], { unique: true })
 @Index(['code'])
 export class SeriesAuthor {
-  @Column({ type: 'int', primary: true })
+  @Column({ type: 'bigint', primary: true })
   series_id: number;
 
-  @Column({ type: 'int', primary: true })
+  @Column({ type: 'bigint', primary: true })
   code: number;
 
   @ManyToOne(() => Series, series => series.seriesAuthors)

@@ -5,10 +5,10 @@ import { ChapterViewStatsDaily } from './chapter-view-stats-daily.entity';
 @Entity('chapters')
 @Index(['series_id', 'number'])
 export class Chapters {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn({ type: 'bigint' })
   chapter_id: number;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'bigint', nullable: false })
   series_id: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
