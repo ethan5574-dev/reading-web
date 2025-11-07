@@ -6,6 +6,7 @@ import { HealthModule } from './modules/health/health.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SeriesModule } from './modules/series/series.module';
+import { ChaptersModule } from './modules/chapters/chapters.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SeriesModule } from './modules/series/series.module';
     HealthModule,
     UploadModule,
     SeriesModule,
+    ChaptersModule,
     ],
   controllers: [],
   providers: [],

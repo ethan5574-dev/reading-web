@@ -6,11 +6,11 @@ import { Author } from './author.entity';
 @Index(['series_id', 'code'], { unique: true })
 @Index(['code'])
 export class SeriesAuthor {
-  @PrimaryColumn({ type: 'int' })
+  @Column({ type: 'int', primary: true })
   series_id: number;
 
-  @PrimaryColumn({ type: 'varchar', length: 40 })
-  code: string;
+  @Column({ type: 'int', primary: true })
+  code: number;
 
   @ManyToOne(() => Series, series => series.seriesAuthors)
   @JoinColumn({ name: 'series_id' })
