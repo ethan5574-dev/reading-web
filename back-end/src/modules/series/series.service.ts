@@ -94,7 +94,7 @@ export class SeriesService {
                 .select(['chapters.chapter_id', 'chapters.number', 'chapters.title'])
                 .from('chapters', 'chapters')
                 .where('chapters.series_id = :seriesId', { seriesId: id })
-                // .orderBy('chapters.number', 'DESC')
+                .orderBy('chapters.number', 'DESC')
                 .getRawMany();
             console.log(allChapters)
 
