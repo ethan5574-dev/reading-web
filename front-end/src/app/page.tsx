@@ -25,20 +25,30 @@ interface Series {
   synopsis: string
   created_at: string
   updated_at: string
+  total_views: number
   latestChapters: string[]
   totalChapters: number
 }
 
 export default function Home() {
-  const [series, setSeries] = useState<Series[]>([])
+  const [popularSeries, setPopularSeries] = useState<Series[]>([])
+  const [latestSeries, setLatestSeries] = useState<Series[]>([])
+  const [newSeries, setNewSeries] = useState<Series[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchSeries = async () => {
+    const fetchAllSeries = async () => {
       try {
-        const response = await getAllSeries(1, 18) // Fetch 18 series for 3 sections
-        console.log(response)
-        setSeries(response?.data?.series || [])
+        // Fetch 3 loại series song song
+        const [popularRes, latestRes, newRes] = await Promise.all([
+          getAllSeries(1, 6, 'popular'),  // Truyện hay (nhiều views)
+          getAllSeries(1, 6, 'latest'),   // Truyện mới cập nhật
+          getAllSeries(1, 6, 'created'),  // Truyện mới tạo
+        ])
+
+        setPopularSeries(popularRes?.data?.series || [])
+        setLatestSeries(latestRes?.data?.series || [])
+        setNewSeries(newRes?.data?.series || [])
       } catch (error) {
         console.error("Error fetching series:", error)
       } finally {
@@ -46,7 +56,7 @@ export default function Home() {
       }
     }
 
-    fetchSeries()
+    fetchAllSeries()
   }, [])
 
   // Map series data to story card format
@@ -62,10 +72,10 @@ export default function Home() {
     }
   }
 
-  // Split series into 3 sections (6 items each)
-  const hotStories = series.slice(0, 6).map(s => ({ ...mapSeriesToStory(s), isHot: true }))
-  const exclusiveStories = series.slice(6, 12).map(s => ({ ...mapSeriesToStory(s), isNew: false }))
-  const newStories = series.slice(12, 18).map(s => ({ ...mapSeriesToStory(s), isNew: true }))
+  // Map 3 loại series
+  const hotStories = popularSeries.map(s => ({ ...mapSeriesToStory(s), isHot: true }))
+  const exclusiveStories = latestSeries.map(s => ({ ...mapSeriesToStory(s), isNew: false }))
+  const newStories = newSeries.map(s => ({ ...mapSeriesToStory(s), isNew: true }))
 
   if (loading) {
     return (
@@ -97,6 +107,8 @@ export default function Home() {
       </nav>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Top Chapters Section */}
+
         {/* Popular Stories Section */}
         <section className="mb-12">
           <div className="mb-6 flex items-center gap-2">
@@ -106,23 +118,6 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {hotStories.length > 0 ? (
               hotStories.map((story) => (
-                <StoryCard key={story.id} {...story} />
-              ))
-            ) : (
-              <p className="col-span-full text-center text-muted-foreground">Chưa có truyện</p>
-            )}
-          </div>
-        </section>
-
-        {/* Exclusive Stories Section */}
-        <section className="mb-12">
-          <div className="mb-6 flex items-center gap-2">
-            <Flame className="h-5 w-5 text-accent" />
-            <h2 className="text-xl font-bold text-foreground">Độc Quyền Truyện QQ</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {exclusiveStories.length > 0 ? (
-              exclusiveStories.map((story) => (
                 <StoryCard key={story.id} {...story} />
               ))
             ) : (

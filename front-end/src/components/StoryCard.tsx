@@ -26,11 +26,7 @@ export default function StoryCard({ id, title, episodes, chapter, image, isHot, 
         <img src={image || "/placeholder.svg"} alt={title} className="h-40 w-full object-cover sm:h-48" />
         <div className="absolute left-0 top-0 flex items-start justify-between w-full p-2">
           <span className="rounded-md bg-accent px-2 py-1 text-xs font-bold text-accent-foreground">{episodes}</span>
-          {isHot && (
-            <span className="rounded-md bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground">
-              Hot
-            </span>
-          )}
+          
           {isNew && <span className="rounded-md bg-blue-500 px-2 py-1 text-xs font-bold text-white">New</span>}
         </div>
       </div>

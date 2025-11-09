@@ -10,8 +10,12 @@ export class SeriesService {
         private seriesRepository: Repository<Series>,
     ) { }
 
-    // Đã sửa để hỗ trợ phân trang và lấy 3 chương mới nhất
-    async getSeries(page: number = 1, pageSize: number = 10): Promise<{
+    // Lấy danh sách series với phân trang và filter
+    async getSeries(
+        page: number = 1, 
+        pageSize: number = 10,
+        sortBy: 'latest' | 'popular' | 'created' = 'created'
+    ): Promise<{
         series: any[];
         total: number;
         page: number;
@@ -24,23 +28,69 @@ export class SeriesService {
             // Đếm tổng số series
             const total = await this.seriesRepository.count();
 
-            // Lấy series trước (không join chapters)
+            // Bước 1: Lấy series IDs đã được sort với total_views
+            const seriesIdsQuery = this.seriesRepository.manager
+                .createQueryBuilder()
+                .select('series.series_id', 'series_id')
+                .addSelect('COALESCE(SUM(stats.count), 0)', 'total_views')
+                .addSelect('MAX(chapters.updated_at)', 'latest_chapter_time')
+                .from('series', 'series')
+                .leftJoin('chapters', 'chapters', 'chapters.series_id = series.series_id')
+                .leftJoin('chapter_view_stats_daily', 'stats', 'stats.chapter_id = chapters.chapter_id')
+                .groupBy('series.series_id');
+
+            // Áp dụng sort
+            switch (sortBy) {
+                case 'popular':
+                    seriesIdsQuery.orderBy('total_views', 'DESC');
+                    break;
+                case 'latest':
+                    seriesIdsQuery.orderBy('latest_chapter_time', 'DESC');
+                    break;
+                default:
+                    seriesIdsQuery.orderBy('series.created_at', 'DESC');
+            }
+
+            seriesIdsQuery.offset(skip).limit(pageSize);
+            const seriesIdsResult = await seriesIdsQuery.getRawMany();
+
+            // Nếu không có series nào
+            if (seriesIdsResult.length === 0) {
+                return {
+                    series: [],
+                    total,
+                    page,
+                    limit: pageSize,
+                    totalPages: Math.ceil(total / pageSize)
+                };
+            }
+
+            // Bước 2: Lấy full data của các series đã filter
+            const seriesIds = seriesIdsResult.map(r => r.series_id);
             const seriesList = await this.seriesRepository
                 .createQueryBuilder('series')
                 .leftJoinAndSelect('series.seriesAuthors', 'seriesAuthors')
                 .leftJoinAndSelect('seriesAuthors.author', 'author')
-                .orderBy('series.created_at', 'DESC')
-                .skip(skip)
-                .take(pageSize)
+                .where('series.series_id IN (:...ids)', { ids: seriesIds })
                 .getMany();
 
-            // Lấy 3 chương mới nhất cho từng series
-            const seriesWithChapters = await Promise.all(
-                seriesList.map(async (series) => {
+            // Map total_views từ kết quả query đầu
+            const viewsMap = new Map(
+                seriesIdsResult.map(r => [r.series_id, Number(r.total_views || 0)])
+            );
+
+            // Sort lại theo thứ tự của seriesIdsResult
+            const seriesListSorted = seriesIds
+                .map(id => seriesList.find(s => s.series_id === id))
+                .filter((s): s is Series => s !== undefined);
+
+            // Map kết quả với total_views
+            const seriesWithData = await Promise.all(
+                seriesListSorted.map(async (series) => {
                     // Lấy 3 chương mới nhất
                     const latestChapters = await this.seriesRepository.manager
                         .createQueryBuilder()
-                        .select('chapters')
+                        .select('chapters.number', 'number')
                         .from('chapters', 'chapters')
                         .where('chapters.series_id = :seriesId', { seriesId: series.series_id })
                         .orderBy('chapters.number', 'DESC')
@@ -57,14 +107,15 @@ export class SeriesService {
 
                     return {
                         ...series,
-                        latestChapters: latestChapters.map(ch => ch.chapters_number),
+                        total_views: viewsMap.get(series.series_id) || 0,
+                        latestChapters: latestChapters.map(ch => ch.number),
                         totalChapters: parseInt(chapterCount?.count || '0'),
                     };
                 })
             );
 
             return {
-                series: seriesWithChapters,
+                series: seriesWithData,
                 total,
                 page,
                 limit: pageSize,
@@ -88,25 +139,36 @@ export class SeriesService {
                 return null;
             }
 
-            // Lấy tất cả chapters (chỉ lấy id, number, title)
+            // Lấy tất cả chapters với views
             const allChapters = await this.seriesRepository.manager
                 .createQueryBuilder()
-                .select(['chapters.chapter_id', 'chapters.number', 'chapters.title'])
+                .select([
+                    'chapters.chapter_id',
+                    'chapters.number',
+                    'chapters.title',
+                    'COALESCE(SUM(stats.count), 0) as views'
+                ])
                 .from('chapters', 'chapters')
+                .leftJoin('chapter_view_stats_daily', 'stats', 'stats.chapter_id = chapters.chapter_id')
                 .where('chapters.series_id = :seriesId', { seriesId: id })
+                .groupBy('chapters.chapter_id')
                 .orderBy('chapters.number', 'DESC')
                 .getRawMany();
-            console.log(allChapters)
 
-            // Lấy 10 chương mới nhất với đầy đủ thông tin
+            // Tính tổng views của series
+            const totalViews = allChapters.reduce((sum, ch) => sum + Number(ch.views || 0), 0);
+
+            // Lấy 10 chương mới nhất
             const latestChapters = allChapters.slice(0, 10);
 
             return {
                 ...series,
+                total_views: totalViews,
                 latestChapters: latestChapters.map(ch => ({
                     chapter_id: ch.chapters_chapter_id,
                     number: ch.chapters_number,
                     title: ch.chapters_title,
+                    views: Number(ch.views || 0),
                 })),
                 totalChapters: allChapters.length,
             };

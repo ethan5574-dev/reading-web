@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, ChevronLeft, ChevronRight, Home } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight, Home, Eye } from "lucide-react"
 import { getChapterByTitle } from "@/fetching/chapters"
+import { trackChapterView, getChapterTotalViews } from "@/fetching/views"
 import { slugify } from "@/utils"
 
 interface Series {
@@ -47,12 +48,24 @@ export default function ChapterReaderPage() {
 
   const [chapter, setChapter] = useState<Chapter | null>(null)
   const [loading, setLoading] = useState(true)
+  const [totalViews, setTotalViews] = useState<number>(0)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getChapterByTitle(parseInt(seriesId), chapterTitle)
-        setChapter(response.data || response)
+        const chapterData = response.data || response
+        setChapter(chapterData)
+
+        // Lấy số views hiện tại
+        if (chapterData?.chapter_id) {
+          try {
+            const viewsData = await getChapterTotalViews(chapterData.chapter_id)
+            setTotalViews(viewsData.total_views || 0)
+          } catch (error) {
+            console.error("Error fetching views:", error)
+          }
+        }
       } catch (error) {
         console.error("Error fetching chapter:", error)
       } finally {
@@ -62,6 +75,25 @@ export default function ChapterReaderPage() {
 
     fetchData()
   }, [seriesId, chapterTitle])
+
+  // Track view sau 3 giây (để chắc user thực sự đọc)
+  useEffect(() => {
+    if (chapter?.chapter_id) {
+      const timer = setTimeout(async () => {
+        try {
+          const result = await trackChapterView(chapter.chapter_id)
+          // Cập nhật số views sau khi track
+          if (result.success) {
+            setTotalViews(result.count)
+          }
+        } catch (error) {
+          console.error("Error tracking view:", error)
+        }
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [chapter?.chapter_id])
 
   const handlePrevChapter = () => {
     if (chapter?.previousChapter) {
@@ -118,9 +150,17 @@ export default function ChapterReaderPage() {
               <span className="text-sm">{chapter.series?.name || "Truyện"}</span>
             </button>
             
-            <h1 className="text-white text-sm font-medium">
-              Chương {chapter.title || chapter.number}
-            </h1>
+            <div className="flex flex-col items-center">
+              <h1 className="text-white text-sm font-medium">
+                Chương {chapter.title || chapter.number}
+              </h1>
+              {totalViews > 0 && (
+                <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
+                  <Eye className="h-3 w-3" />
+                  <span>{totalViews.toLocaleString()} lượt xem</span>
+                </div>
+              )}
+            </div>
             
             <button
               onClick={() => router.push("/")}

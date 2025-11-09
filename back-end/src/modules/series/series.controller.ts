@@ -9,8 +9,9 @@ export class SeriesController {
   async getSeries(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
+    @Query('sortBy') sortBy: 'latest' | 'popular' | 'created' = 'created',
   ) {
-    return this.seriesService.getSeries(parseInt(page), parseInt(limit));
+    return this.seriesService.getSeries(parseInt(page), parseInt(limit), sortBy);
   }
 
   @Get(':id')

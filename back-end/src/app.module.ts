@@ -7,6 +7,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SeriesModule } from './modules/series/series.module';
 import { ChaptersModule } from './modules/chapters/chapters.module';
+import { ViewsModule } from './modules/views/views.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ChaptersModule } from './modules/chapters/chapters.module';
     UploadModule,
     SeriesModule,
     ChaptersModule,
+    ViewsModule,
     ],
   controllers: [],
   providers: [],

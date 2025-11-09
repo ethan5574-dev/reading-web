@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, BookOpen, Calendar, User } from "lucide-react"
+import { ArrowLeft, BookOpen, Calendar, User, Eye } from "lucide-react"
 import { getSeriesById } from "@/fetching/series"
 import { slugify } from "@/utils"
 
@@ -11,6 +11,7 @@ interface Chapter {
   series_id: string
   number: string
   title: string
+  views: number
   released_at: string | null
   created_at: string
   updated_at: string
@@ -29,6 +30,7 @@ interface SeriesDetail {
   synopsis: string
   created_at: string
   updated_at: string
+  total_views: number // Tổng views của series
   chapters: Chapter[] // Toàn bộ danh sách chapters
   latestChapters: Chapter[] // 10 chapters mới nhất
   totalChapters: number
@@ -131,6 +133,13 @@ export default function SeriesDetailPage() {
                 <Calendar className="h-4 w-4" />
                 <span>Tổng số chương: {series.totalChapters}</span>
               </div>
+
+              {series.total_views > 0 && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Eye className="h-4 w-4" />
+                  <span>Tổng lượt xem: {series.total_views.toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
             <div className="mb-4">
@@ -164,14 +173,17 @@ export default function SeriesDetailPage() {
                   onClick={() => router.push(`/series/${slugify(series.name)}/${seriesId}/chapter/${chapter.title}`)}
                   className="text-left px-4 py-3 rounded-md bg-card hover:bg-accent transition-colors border border-border"
                 >
-                  <span className="text-foreground font-medium">
-                    Chương {chapter.title}
-                  </span>
-                  {chapter.title && (
-                    <span className="text-muted-foreground text-sm block mt-1">
-                      {chapter.created_at}
+                  <div className="flex items-center justify-between">
+                    <span className="text-foreground font-medium">
+                      Chương {chapter.title}
                     </span>
-                  )}
+                    {chapter.views > 0 && (
+                      <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                        <Eye className="h-3 w-3" />
+                        <span>{chapter.views.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>

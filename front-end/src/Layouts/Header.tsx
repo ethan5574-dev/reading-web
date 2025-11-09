@@ -1,14 +1,16 @@
 "use client"
 
 import { Search, Bell } from "lucide-react"
-
+import { useRouter } from "next/navigation"
+    
 export default function Header() {
+  const router = useRouter()
   return (
     <header className="border-b border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 text-2xl font-bold text-accent">
+          <div className="flex items-center gap-2 text-2xl font-bold text-accent" onClick={() => router.push("/")} >
             <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center">
               <span className="text-accent-foreground font-black">Q</span>
             </div>
