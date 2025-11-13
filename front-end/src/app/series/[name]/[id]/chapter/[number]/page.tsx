@@ -147,7 +147,7 @@ export default function ChapterReaderPage() {
               className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span className="text-sm">{chapter.series?.name || "Truyện"}</span>
+              <span className="text-sm">{chapter.series?.name || "Truyện tranh"}</span>
             </button>
             
             <div className="flex flex-col items-center">
